@@ -72,7 +72,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="main_menu",
             menu_options={
                 "area_menu": "Configure areas to create devices/sensors",
-                CONF_SOURCES: "Configure data collector sources",
+                "sources": "Configure data collector sources",
                 "finished": "Complete setup",
             },
         )
@@ -83,7 +83,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.configured_sources = user_input[CONF_SOURCES]
             return await self.async_step_main_menu(None)
         return self.async_show_form(
-            step_id=CONF_SOURCES,
+            step_id="sources",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
@@ -103,12 +103,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Show the area menu."""
         return self.async_show_menu(
             step_id="area_menu",
-            menu_options=[
-                "area_create",
-                "area_update_select",
-                "area_delete",
-                "main_menu",
-            ],
+            menu_options={
+                "area_create": "Define a new area",
+                "area_update_select": "Update an area",
+                "area_delete": "Delete an area",
+                "main_menu": "Return to main menu",
+            },
         )
 
     async def async_step_area_create(self, user_input: dict[str, Any] | None = None):
@@ -239,10 +239,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             user_input[CONF_AREAS] = self.configured_areas
             return self.async_create_entry(title=NAME, data=user_input)
-        return self.async_show_form(
-            step_id="finished",
-            errors=errors,
-        )
+        return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
 
 class CannotConnect(HomeAssistantError):
