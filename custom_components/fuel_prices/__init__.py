@@ -2,7 +2,7 @@
 
 import logging
 
-from pyfuelprices import FuelPrices, SOURCE_MAP
+from pyfuelprices import FuelPrices
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -27,7 +27,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Got request to setup entry.")
     try:
         fuel_prices: FuelPrices = FuelPrices.create(
-            enabled_sources=entry.data.get("sources", [])
+            enabled_sources=entry.data.get("sources", None)
         )
         await fuel_prices.update()
         hass.data[DOMAIN][entry.entry_id] = FuelPricesCoordinator(
@@ -66,7 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 built[fuel.fuel_type] = fuel.cost
             locations.append(built)
 
-        return {"items": locations, "sources": []}
+        return {"items": locations, "sources": entry.data.get("sources", [])}
 
     hass.services.async_register(
         DOMAIN,
