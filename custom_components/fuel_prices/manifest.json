@@ -1,0 +1,19 @@
+{
+    "domain": "fuel_prices",
+    "name": "Fuel Prices",
+    "codeowners": [
+      "@pantherale0"
+    ],
+    "config_flow": true,
+    "documentation": "https://github.com/pantherale0/ha-fuelprices",
+    "integration_type": "service",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/pantherale0/ha-fuelprices/issues",
+    "requirements": [
+      "pyfuelprices==0.0.0",
+      "geopy"
+    ],
+    "ssdp": [],
+    "version": "0.0.0",
+    "zeroconf": []
+  }
