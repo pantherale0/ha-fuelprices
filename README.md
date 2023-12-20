@@ -1,4 +1,4 @@
-# Integration Blueprint
+# Fuel Prices
 
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
@@ -14,11 +14,9 @@ _Integration to integrate with [pyfuelprices][pyfuelprices]._
 
 **This integration will set up the following platforms.**
 
-| Platform        | Description                         |
-| --------------- | ----------------------------------- |
-| `binary_sensor` | Show something `True` or `False`.   |
-| `sensor`        | Show info from blueprint API.       |
-| `switch`        | Switch something `True` or `False`. |
+| Platform         | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| `device_tracker` | Optional entities for fuel stations, attributes will contain fuel price data |
 
 ## Installation
 
