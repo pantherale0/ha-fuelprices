@@ -54,5 +54,31 @@
                 }
             }
         }
+    },
+    "services": {
+        "find_fuels": {
+            "name": "Find fuel prices from location",
+            "description": "This will retrieve all fuel prices for a given location sorted by the cheapest first.",
+            "fields": {
+                "location": {
+                    "name": "Location",
+                    "description": "The location of the area to search"
+                },
+                "type": {
+                    "name": "Fuel Type",
+                    "description": "The fuel type to search for (such as E5, E10, B7, SDV)"
+                }
+            }
+        },
+        "find_fuel_station": {
+            "name": "Find fuel stations from location",
+            "description": "Find all of the available fuel stations, alongside available fuels and cost for a given location. The results are not sorted.",
+            "fields": {
+                "location": {
+                    "name": "Location",
+                    "description": "The location of the area to search"
+                }
+            }
+        }
     }
 }

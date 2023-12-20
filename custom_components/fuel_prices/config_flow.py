@@ -13,7 +13,7 @@ from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
 
-from .const import DOMAIN, NAME
+from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="main_menu",
             menu_options={
                 "area_menu": "Configure areas to create devices/sensors",
-                "sources": "Configure data collector sources",
+                CONF_SOURCES: "Configure data collector sources",
                 "finished": "Complete setup",
             },
         )
@@ -80,14 +80,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_sources(self, user_input: dict[str, Any] | None = None):
         """Sources configuration step."""
         if user_input is not None:
-            self.configured_sources = user_input["sources"]
+            self.configured_sources = user_input[CONF_SOURCES]
             return await self.async_step_main_menu(None)
         return self.async_show_form(
-            step_id="sources",
+            step_id=CONF_SOURCES,
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        "sources", default=self.configured_sources
+                        CONF_SOURCES, default=self.configured_sources
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             mode=selector.SelectSelectorMode.DROPDOWN,
@@ -232,12 +232,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Final confirmation step."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            user_input["sources"] = (
+            user_input[CONF_SOURCES] = (
                 self.configured_sources
                 if len(self.configured_sources) > 0
                 else [k for k in SOURCE_MAP]
             )
-            user_input["areas"] = self.configured_areas
+            user_input[CONF_AREAS] = self.configured_areas
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(
             step_id="finished",

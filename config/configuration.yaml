@@ -6,3 +6,9 @@ logger:
   default: info
   logs:
     custom_components.fuel_prices: debug
+    pyfuelprices: debug
+
+# Enable VSCode debugging
+debugpy:
+  start: true
+  wait: true

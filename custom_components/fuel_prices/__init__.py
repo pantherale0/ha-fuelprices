@@ -18,7 +18,7 @@ from .const import DOMAIN
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = []
+PLATFORMS = [Platform.DEVICE_TRACKER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -45,11 +45,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    def handle_fuel_lookup(call: ServiceCall) -> ServiceResponse:
+        """Handle a fuel lookup call."""
+        radius = call.data.get("location", {}).get(
+            "radius", 8046.72
+        )  # this is in meters
+        radius = radius / 1609
+        lat = call.data.get("location", {}).get("latitude", 0.0)
+        long = call.data.get("location", {}).get("longitude", 0.0)
+        fuel_type = call.data.get("type")
+        return {
+            "fuels": fuel_prices.find_fuel_from_point((lat, long), radius, fuel_type)
+        }
+
     def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel location lookup call."""
-        radius = call.data.get("radius", 5.0)
-        lat = call.data.get("latitude")
-        long = call.data.get("longitude")
+        radius = call.data.get("location", {}).get(
+            "radius", 8046.72
+        )  # this is in meters
+        radius = radius / 1609
+        lat = call.data.get("location", {}).get("latitude", 0.0)
+        long = call.data.get("location", {}).get("longitude", 0.0)
         location_ids = fuel_prices.find_fuel_locations_from_point((lat, long), radius)
         locations = []
         for loc_id in location_ids:
@@ -72,6 +88,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN,
         "find_fuel_station",
         handle_fuel_location_lookup,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "find_fuels",
+        handle_fuel_lookup,
         supports_response=SupportsResponse.ONLY,
     )
 
