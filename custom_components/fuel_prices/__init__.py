@@ -3,9 +3,10 @@
 import logging
 
 from pyfuelprices import FuelPrices
+from pyfuelprices.const import PROP_AREA_LAT, PROP_AREA_LONG, PROP_AREA_RADIUS
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import Platform, CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -14,11 +15,24 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_AREAS, CONF_SOURCES
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.DEVICE_TRACKER]
+
+
+def _build_configured_areas(hass_areas: dict) -> list[dict]:
+    module_areas = []
+    for area in hass_areas:
+        module_areas.append(
+            {
+                PROP_AREA_RADIUS: area[CONF_RADIUS],
+                PROP_AREA_LAT: area[CONF_LATITUDE],
+                PROP_AREA_LONG: area[CONF_LONGITUDE],
+            }
+        )
+    return module_areas
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -27,7 +41,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Got request to setup entry.")
     try:
         fuel_prices: FuelPrices = FuelPrices.create(
-            enabled_sources=entry.data.get("sources", None)
+            enabled_sources=entry.data.get(CONF_SOURCES, None),
+            configured_areas=_build_configured_areas(entry.data[CONF_AREAS]),
         )
         await fuel_prices.update()
         hass.data[DOMAIN][entry.entry_id] = FuelPricesCoordinator(
@@ -45,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    def handle_fuel_lookup(call: ServiceCall) -> ServiceResponse:
+    async def handle_fuel_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel lookup call."""
         radius = call.data.get("location", {}).get(
             "radius", 8046.72
@@ -55,10 +70,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         long = call.data.get("location", {}).get("longitude", 0.0)
         fuel_type = call.data.get("type")
         return {
-            "fuels": fuel_prices.find_fuel_from_point((lat, long), radius, fuel_type)
+            "fuels": await fuel_prices.find_fuel_from_point(
+                (lat, long), radius, fuel_type
+            )
         }
 
-    def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
+    async def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel location lookup call."""
         radius = call.data.get("location", {}).get(
             "radius", 8046.72
@@ -66,21 +83,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         radius = radius / 1609
         lat = call.data.get("location", {}).get("latitude", 0.0)
         long = call.data.get("location", {}).get("longitude", 0.0)
-        location_ids = fuel_prices.find_fuel_locations_from_point((lat, long), radius)
-        locations = []
-        for loc_id in location_ids:
-            loc = fuel_prices.get_fuel_location(loc_id)
-            built = {
-                "name": loc.name,
-                "last_update": loc.last_updated,
-                "address": loc.address,
-                "latitude": loc.lat,
-                "longitude": loc.long,
-                "brand": loc.brand,
-            }
-            for fuel in loc.available_fuels:
-                built[fuel.fuel_type] = fuel.cost
-            locations.append(built)
+        locations = await fuel_prices.find_fuel_locations_from_point(
+            (lat, long), radius
+        )
+        locations_built = []
+        for loc in locations:
+            locations_built.append(loc.__dict__())
 
         return {"items": locations, "sources": entry.data.get("sources", [])}
 
