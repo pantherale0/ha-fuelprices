@@ -90,7 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         for loc in locations:
             locations_built.append(loc.__dict__())
 
-        return {"items": locations, "sources": entry.data.get("sources", [])}
+        return {"items": locations_built, "sources": entry.data.get("sources", [])}
 
     hass.services.async_register(
         DOMAIN,
