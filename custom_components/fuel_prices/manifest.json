@@ -11,11 +11,7 @@
     "issue_tracker": "https://github.com/pantherale0/ha-fuelprices/issues",
     "requirements": [
       "pyfuelprices==2.1.1",
-      "geopy",
-      "these-united-states",
-      "reverse-geocode",
-      "pandas",
-      "scikit-learn"
+      "pandas"
     ],
     "ssdp": [],
     "version": "0.0.0",
