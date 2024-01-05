@@ -88,6 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         locations_built = []
         for loc in locations:
+            await loc.dynamic_build_fuels()
             locations_built.append(loc.__dict__())
 
         return {"items": locations_built, "sources": entry.data.get("sources", [])}

@@ -106,6 +106,7 @@ class FeulStationTracker(FeulStationEntity, BaseTrackerEntity):
         attr: dict[str, StateType] = {
             ATTR_SOURCE_TYPE: self.source_type,
             **self._get_fuels,
+            **self._fuel_station.__dict__(),
         }
         if self.latitude is not None and self.longitude is not None:
             attr[ATTR_LATITUDE] = self.latitude
