@@ -69,11 +69,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         lat = call.data.get("location", {}).get("latitude", 0.0)
         long = call.data.get("location", {}).get("longitude", 0.0)
         fuel_type = call.data.get("type")
-        return {
-            "fuels": await fuel_prices.find_fuel_from_point(
-                (lat, long), radius, fuel_type
-            )
-        }
+        try:
+            return {
+                "fuels": await fuel_prices.find_fuel_from_point(
+                    (lat, long), radius, fuel_type
+                )
+            }
+        except ValueError as err:
+            raise HomeAssistantError("Country not available for fuel data.") from err
 
     async def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel location lookup call."""
@@ -83,9 +86,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         radius = radius / 1609
         lat = call.data.get("location", {}).get("latitude", 0.0)
         long = call.data.get("location", {}).get("longitude", 0.0)
-        locations = await fuel_prices.find_fuel_locations_from_point(
-            (lat, long), radius
-        )
+        try:
+            locations = await fuel_prices.find_fuel_locations_from_point(
+                (lat, long), radius
+            )
+        except ValueError as err:
+            raise HomeAssistantError("Country not available for fuel data.") from err
         locations_built = []
         for loc in locations:
             await loc.dynamic_build_fuels()
