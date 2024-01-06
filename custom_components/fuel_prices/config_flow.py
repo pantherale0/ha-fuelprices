@@ -1,4 +1,4 @@
-"""Config flow for MSFT Family Safety."""
+"""Config flow for Fuel Prices."""
 
 import logging
 from typing import Any
@@ -69,7 +69,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_main_menu()
 
     async def async_step_main_menu(self, _: None = None):
-        """Main menu."""
+        """Display configuration menu."""
         return self.async_show_menu(
             step_id="main_menu",
             menu_options={
@@ -80,7 +80,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_sources(self, user_input: dict[str, Any] | None = None):
-        """Sources configuration step."""
+        """Set data source config."""
         if user_input is not None:
             self.configured_sources = user_input[CONF_SOURCES]
             return await self.async_step_main_menu(None)
@@ -231,7 +231,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_area_menu()
 
     async def async_step_finished(self, user_input: dict[str, Any] | None = None):
-        """Final confirmation step."""
+        """Save configuration."""
         errors: dict[str, str] = {}
         if user_input is not None:
             user_input[CONF_SOURCES] = (
@@ -246,6 +246,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Return option flow."""
         return FuelPricesOptionsFlow(config_entry)
 
 
@@ -272,11 +273,11 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         return items
 
     async def async_step_init(self, _: None = None):
-        """Initial option flow step."""
+        """User init option flow."""
         return await self.async_step_main_menu()
 
     async def async_step_main_menu(self, _: None = None):
-        """Main menu."""
+        """Display configuration menu."""
         return self.async_show_menu(
             step_id="main_menu",
             menu_options={
@@ -287,7 +288,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_sources(self, user_input: dict[str, Any] | None = None):
-        """Source configuration step."""
+        """Set data source config."""
         if user_input is not None:
             self.configured_sources = user_input[CONF_SOURCES]
             return await self.async_step_main_menu(None)
@@ -438,7 +439,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         return await self.async_step_area_menu()
 
     async def async_step_finished(self, user_input: dict[str, Any] | None = None):
-        """Final confirmation step."""
+        """Save configuration."""
         errors: dict[str, str] = {}
         if user_input is not None:
             user_input[CONF_SOURCES] = (

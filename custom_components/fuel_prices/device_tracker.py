@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup fuel prices device tracker component."""
+    """Integration platform creation."""
     cooridinator: FuelPricesCoordinator = hass.data[DOMAIN][entry.entry_id]
     areas = entry.data[CONF_AREAS]
     entities = []
