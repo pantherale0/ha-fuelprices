@@ -282,8 +282,30 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
             menu_options={
                 "area_menu": "Configure areas to create devices/sensors",
                 "sources": "Configure data collector sources",
-                "finished": "Complete save",
+                "finished": "Complete re-configuration",
             },
+        )
+
+    async def async_step_sources(self, user_input: dict[str, Any] | None = None):
+        """Source configuration step."""
+        if user_input is not None:
+            self.configured_sources = user_input[CONF_SOURCES]
+            return await self.async_step_main_menu(None)
+        return self.async_show_form(
+            step_id="sources",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SOURCES, default=self.configured_sources
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            options=list(SOURCE_MAP),
+                            multiple=True,
+                        )
+                    )
+                }
+            ),
         )
 
     async def async_step_area_menu(self, _: None = None) -> FlowResult:
@@ -414,6 +436,19 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                 ),
             )
         return await self.async_step_area_menu()
+
+    async def async_step_finished(self, user_input: dict[str, Any] | None = None):
+        """Final confirmation step."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            user_input[CONF_SOURCES] = (
+                self.configured_sources
+                if len(self.configured_sources) > 0
+                else list(SOURCE_MAP)
+            )
+            user_input[CONF_AREAS] = self.configured_areas
+            return self.async_create_entry(title=NAME, data=user_input)
+        return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
 
 class CannotConnect(HomeAssistantError):
