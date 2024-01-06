@@ -37,15 +37,16 @@ def _build_configured_areas(hass_areas: dict) -> list[dict]:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Create ConfigEntry."""
-    hass.data.setdefault(DOMAIN, {})
     _LOGGER.debug("Got request to setup entry.")
+    sources = entry.options.get(CONF_SOURCES, entry.data.get(CONF_SOURCES, None))
+    areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, None))
     try:
         fuel_prices: FuelPrices = FuelPrices.create(
-            enabled_sources=entry.data.get(CONF_SOURCES, None),
-            configured_areas=_build_configured_areas(entry.data[CONF_AREAS]),
+            enabled_sources=sources,
+            configured_areas=_build_configured_areas(areas),
         )
         await fuel_prices.update()
-        hass.data[DOMAIN][entry.entry_id] = FuelPricesCoordinator(
+        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = FuelPricesCoordinator(
             hass, fuel_prices, entry.entry_id
         )
     except Exception as err:
