@@ -28,6 +28,14 @@ _Integration to integrate with [pyfuelprices][pyfuelprices]._
 1. Restart Home Assistant
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Fuel Prices"
 
+## Privacy notice
+
+This integration relies entirely on cloud services, alongside this a few libraries are used to geocode provided coordinates into location data for certain providers such as GasBuddy or TankerKoenig.
+
+For reverse geocoding a mix of Nominatim (https://nominatim.org/), these-united-states (https://pypi.org/project/these-united-states/) and reverse-geocode (https://pypi.org/project/reverse-geocode/). This is done to improve performance, for example, looking up provided coordinates with reverse-geocode will allow us to restrict the fuel station search to data providers available in only that country.
+
+Similar to this, this integration will use these-united-states to retrieve the state of given coordinates, and finally Nominatim is used to retrieve the nearest postcode for the TankerKoenig data source.
+
 ## Configuration is done in the UI
 
 <!---->
