@@ -30,6 +30,8 @@ class FuelPricesCoordinator(DataUpdateCoordinator):
         try:
             async with async_timeout.timeout(240):
                 return await self.api.update()
+        except TimeoutError as err:
+            _LOGGER.error("Timeout updating fuel price data: %s", err)
         except TypeError as err:
             _LOGGER.error("Error updating fuel price data: %s", err)
         except Exception as err:

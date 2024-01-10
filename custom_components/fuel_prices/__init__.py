@@ -1,12 +1,22 @@
 """Fuel Prices integration."""
 
+import contextlib
 import logging
+
+from datetime import timedelta
 
 from pyfuelprices import FuelPrices
 from pyfuelprices.const import PROP_AREA_LAT, PROP_AREA_LONG, PROP_AREA_RADIUS
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform, CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS
+from homeassistant.const import (
+    Platform,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_RADIUS,
+    CONF_TIMEOUT,
+    CONF_SCAN_INTERVAL,
+)
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -40,12 +50,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Got request to setup entry.")
     sources = entry.options.get(CONF_SOURCES, entry.data.get(CONF_SOURCES, None))
     areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, None))
+    timeout = entry.options.get(CONF_TIMEOUT, entry.data.get(CONF_TIMEOUT, 30))
+    update_interval = entry.options.get(
+        CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, 1440)
+    )
+    default_lat = hass.config.latitude
+    default_long = hass.config.longitude
     try:
         fuel_prices: FuelPrices = FuelPrices.create(
             enabled_sources=sources,
             configured_areas=_build_configured_areas(areas),
+            timeout=timedelta(seconds=timeout),
+            update_interval=timedelta(minutes=update_interval),
         )
-        await fuel_prices.update()
+        with contextlib.suppress(TimeoutError):
+            await fuel_prices.update()
         hass.data.setdefault(DOMAIN, {})[entry.entry_id] = FuelPricesCoordinator(
             hass, fuel_prices, entry.entry_id
         )
@@ -67,8 +86,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "radius", 8046.72
         )  # this is in meters
         radius = radius / 1609
-        lat = call.data.get("location", {}).get("latitude", 0.0)
-        long = call.data.get("location", {}).get("longitude", 0.0)
+        lat = call.data.get("location", {}).get("latitude", default_lat)
+        long = call.data.get("location", {}).get("longitude", default_long)
         fuel_type = call.data.get("type")
         try:
             return {
@@ -85,8 +104,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "radius", 8046.72
         )  # this is in meters
         radius = radius / 1609
-        lat = call.data.get("location", {}).get("latitude", 0.0)
-        long = call.data.get("location", {}).get("longitude", 0.0)
+        lat = call.data.get("location", {}).get("latitude", default_lat)
+        long = call.data.get("location", {}).get("longitude", default_long)
         try:
             locations = await fuel_prices.find_fuel_locations_from_point(
                 (lat, long), radius
@@ -121,6 +140,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("Unloading config entry %s", entry.entry_id)
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

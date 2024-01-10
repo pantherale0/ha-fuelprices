@@ -4,7 +4,7 @@ import logging
 from typing import Any
 from homeassistant.config_entries import ConfigEntry, OptionsFlow
 
-from pyfuelprices import SOURCE_MAP
+from pyfuelprices.sources.mapping import SOURCE_MAP, COUNTRY_MAP
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -13,7 +13,14 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
 from homeassistant.core import callback
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
+from homeassistant.const import (
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_RADIUS,
+    CONF_NAME,
+    CONF_TIMEOUT,
+    CONF_SCAN_INTERVAL,
+)
 
 from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES
 
@@ -49,6 +56,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     configured_sources = []
     configuring_area = {}
     configuring_index = -1
+    timeout = None
+    interval = None
 
     @property
     def configured_area_names(self) -> list[str]:
@@ -66,6 +75,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # users should use the options flow to adjust areas and sources.
         await self.async_set_unique_id(NAME)
         self._abort_if_unique_id_configured()
+        self.configured_areas = []
+        self.configured_sources = []
+        self.configuring_area = {}
+        self.configuring_index = -1
+        self.timeout = 10
+        self.interval = 1440
+        # add the home location as a default (this can optionally be removed).
+        self.configured_areas.append(
+            {
+                CONF_NAME: self.hass.config.location_name,
+                CONF_LATITUDE: self.hass.config.latitude,
+                CONF_LONGITUDE: self.hass.config.longitude,
+                CONF_RADIUS: 10.0,
+            }
+        )
         return await self.async_step_main_menu()
 
     async def async_step_main_menu(self, _: None = None):
@@ -96,7 +120,29 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             options=list(SOURCE_MAP),
                             multiple=True,
                         )
-                    )
+                    ),
+                    vol.Optional(
+                        CONF_TIMEOUT,
+                        default=self.timeout,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            min=5,
+                            max=60,
+                            unit_of_measurement="s",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL,
+                        default=self.interval,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            min=120,
+                            max=1440,
+                            unit_of_measurement="m",
+                        )
+                    ),
                 }
             ),
         )
@@ -234,11 +280,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Save configuration."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            user_input[CONF_SOURCES] = (
-                self.configured_sources
-                if len(self.configured_sources) > 0
-                else list(SOURCE_MAP)
-            )
+            if len(self.configured_sources) > 0:
+                user_input[CONF_SOURCES] = self.configured_sources
+            elif self.hass.config.country is not None:
+                user_input[CONF_SOURCES] = COUNTRY_MAP.get(self.hass.config.country)
+            else:
+                user_input[CONF_SOURCES] = list(SOURCE_MAP)
             user_input[CONF_AREAS] = self.configured_areas
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)

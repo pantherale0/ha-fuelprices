@@ -8,13 +8,15 @@
             },
             "sources": {
                 "title": "Configure data collection sources",
-                "description": "Using this menu you can change what providers the integration will collect data from.",
+                "description": "Using this menu you can change what providers the integration will collect data from. By default it will use all data sources available for your current country as configured in Home Assistant.",
                 "data": {
-                    "sources": "Data source(s)"
+                    "sources": "Data source(s)",
+                    "timeout": "Data source timeout",
+                    "scan_interval": "Data source update interval"
                 }
             },
             "area_menu": {
-                "title": "Configure areas to register devices and sensors",
+                "title": "Configure areas to register devices and sensors, by default your home location has already been added automatically with a radius of 20 miles, this can be removed or changed if needed.",
                 "menu_options": {
                     "area_create": "Create an area",
                     "area_update_select": "Update an area",
