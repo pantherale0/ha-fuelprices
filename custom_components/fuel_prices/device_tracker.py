@@ -14,6 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
 from .const import CONF_AREAS, DOMAIN
 from .entity import FeulStationEntity
 from .coordinator import FuelPricesCoordinator
@@ -24,22 +25,27 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup fuel prices device tracker component."""
+    """Integration platform creation."""
     cooridinator: FuelPricesCoordinator = hass.data[DOMAIN][entry.entry_id]
     areas = entry.data[CONF_AREAS]
     entities = []
+    found_entities = []
     for area in areas:
         _LOGGER.debug("Registering entities for area %s", area[CONF_NAME])
-        for station_id in cooridinator.api.find_fuel_locations_from_point(
-            point=(area[CONF_LATITUDE], area[CONF_LONGITUDE]), radius=area[CONF_RADIUS]
+        for station in await cooridinator.api.find_fuel_locations_from_point(
+            coordinates=(area[CONF_LATITUDE], area[CONF_LONGITUDE]),
+            radius=area[CONF_RADIUS],
         ):
-            entities.append(
-                FeulStationTracker(
-                    coordinator=cooridinator,
-                    fuel_station_id=station_id,
-                    entity_id="devicetracker",
+            if station.id not in found_entities:
+                entities.append(
+                    FeulStationTracker(
+                        coordinator=cooridinator,
+                        fuel_station_id=station.id,
+                        entity_id="devicetracker",
+                        source=station.props[PROP_FUEL_LOCATION_SOURCE],
+                    )
                 )
-            )
+                found_entities.append(station.id)
 
     async_add_entities(entities, True)
 
@@ -100,6 +106,7 @@ class FeulStationTracker(FeulStationEntity, BaseTrackerEntity):
         attr: dict[str, StateType] = {
             ATTR_SOURCE_TYPE: self.source_type,
             **self._get_fuels,
+            **self._fuel_station.__dict__(),
         }
         if self.latitude is not None and self.longitude is not None:
             attr[ATTR_LATITUDE] = self.latitude

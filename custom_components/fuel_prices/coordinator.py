@@ -21,7 +21,7 @@ class FuelPricesCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=_LOGGER,
             name=name,
-            update_interval=timedelta(seconds=7200),
+            update_interval=timedelta(minutes=30),
         )
         self.api: FuelPrices = api
 
@@ -30,5 +30,9 @@ class FuelPricesCoordinator(DataUpdateCoordinator):
         try:
             async with async_timeout.timeout(240):
                 return await self.api.update()
+        except TimeoutError as err:
+            _LOGGER.error("Timeout updating fuel price data: %s", err)
+        except TypeError as err:
+            _LOGGER.error("Error updating fuel price data: %s", err)
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API {err}") from err
