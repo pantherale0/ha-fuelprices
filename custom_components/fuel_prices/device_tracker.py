@@ -1,4 +1,5 @@
 """Device tracker for fuel prices."""
+
 from __future__ import annotations
 
 import logging
@@ -36,16 +37,16 @@ async def async_setup_entry(
             coordinates=(area[CONF_LATITUDE], area[CONF_LONGITUDE]),
             radius=area[CONF_RADIUS],
         ):
-            if station.id not in found_entities:
+            if station["id"] not in found_entities:
                 entities.append(
                     FeulStationTracker(
                         coordinator=cooridinator,
-                        fuel_station_id=station.id,
+                        fuel_station_id=station["id"],
                         entity_id="devicetracker",
-                        source=station.props[PROP_FUEL_LOCATION_SOURCE],
+                        source=station["props"][PROP_FUEL_LOCATION_SOURCE],
                     )
                 )
-                found_entities.append(station.id)
+                found_entities.append(station["id"])
 
     async_add_entities(entities, True)
 
