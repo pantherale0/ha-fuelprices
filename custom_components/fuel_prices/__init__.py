@@ -74,6 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
         """Update listener."""
+        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
         await hass.config_entries.async_reload(entry.entry_id)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
