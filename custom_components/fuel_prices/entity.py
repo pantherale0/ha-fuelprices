@@ -1,4 +1,5 @@
 """Fuel Price entity base type."""
+
 from __future__ import annotations
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -6,7 +7,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import FuelPricesCoordinator
 
 
-class FeulStationEntity(CoordinatorEntity):
+class FuelStationEntity(CoordinatorEntity):
     """Represents a fuel station."""
 
     def __init__(

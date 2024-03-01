@@ -1,23 +1,21 @@
-"""Device tracker for fuel prices."""
+"""Sensor for fuel prices."""
 
 from __future__ import annotations
 
+
 import logging
+
+from collections.abc import Mapping
+from typing import Any
+
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
-from homeassistant.components.device_tracker.config_entry import (
-    BaseTrackerEntity,
-    SourceType,
-    ATTR_SOURCE_TYPE,
-    ATTR_LATITUDE,
-    ATTR_LONGITUDE,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
 from .const import CONF_AREAS, DOMAIN
-from .entity import FeulStationEntity
+from .entity import FuelStationEntity
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -51,27 +49,13 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class FeulStationTracker(FeulStationEntity, BaseTrackerEntity):
-    """A fuel station tracker entity."""
+class FeulStationTracker(FuelStationEntity, SensorEntity):
+    """A fuel station entity."""
 
     @property
-    def name(self) -> str:
-        """Return the name of the entity."""
+    def native_value(self) -> str:
+        """Return the native value of the entity."""
         return self._fuel_station.name
-
-    @property
-    def location_accuracy(self) -> int:
-        """Return the location accuracy of the device.
-
-        Value in meters.
-        """
-        return 0
-
-    @property
-    def state(self) -> str | None:
-        """Return the state of the device."""
-        if self.location_name is not None:
-            return self.location_name
 
     @property
     def _get_fuels(self) -> dict:
@@ -82,35 +66,16 @@ class FeulStationTracker(FeulStationEntity, BaseTrackerEntity):
         return output
 
     @property
-    def latitude(self) -> float:
-        """Return the latitude."""
-        return self._fuel_station.lat
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return extra state attributes."""
+        return {**self._fuel_station.__dict__(), **self._get_fuels}
 
     @property
-    def longitude(self) -> float:
-        """Return the longitude."""
-        return self._fuel_station.long
+    def icon(self) -> str:
+        """Return entity icon."""
+        return "mdi:gas-station"
 
     @property
-    def location_name(self) -> str:
-        """Return the name of the location."""
+    def name(self) -> str:
+        """Return the name of the entity."""
         return self._fuel_station.name
-
-    @property
-    def source_type(self) -> SourceType:
-        """Return the source type."""
-        return SourceType.GPS
-
-    @property
-    def state_attributes(self) -> dict[str, StateType]:
-        """Return the fuel location prices."""
-        attr: dict[str, StateType] = {
-            ATTR_SOURCE_TYPE: self.source_type,
-            **self._get_fuels,
-            **self._fuel_station.__dict__(),
-        }
-        if self.latitude is not None and self.longitude is not None:
-            attr[ATTR_LATITUDE] = self.latitude
-            attr[ATTR_LONGITUDE] = self.longitude
-
-        return attr

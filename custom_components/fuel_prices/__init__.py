@@ -29,7 +29,7 @@ from .const import DOMAIN, CONF_AREAS, CONF_SOURCES
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = [Platform.DEVICE_TRACKER]
+PLATFORMS = [Platform.SENSOR]
 
 
 def _build_configured_areas(hass_areas: dict) -> list[dict]:
@@ -136,8 +136,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("Unloading config entry %s", entry.entry_id)
+    await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
