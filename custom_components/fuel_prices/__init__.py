@@ -116,6 +116,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         return {"items": locations, "sources": entry.data.get("sources", [])}
 
+    async def handle_force_update(call: ServiceCall):
+        """Handle a request to force update."""
+        await fuel_prices.update(force=True)
+
     hass.services.async_register(
         DOMAIN,
         "find_fuel_station",
@@ -129,6 +133,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         handle_fuel_lookup,
         supports_response=SupportsResponse.ONLY,
     )
+
+    hass.services.async_register(DOMAIN, "force_update", handle_force_update)
 
     return True
 

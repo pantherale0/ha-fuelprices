@@ -12,7 +12,7 @@
   "requirements": [
     "reverse-geocode==1.4.1",
     "these-united-states==1.1.0.21",
-    "pyfuelprices==2.2.8"
+    "pyfuelprices==2.2.9"
   ],
   "ssdp": [],
   "version": "0.0.0",
