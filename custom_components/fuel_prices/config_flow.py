@@ -107,6 +107,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Set data source config."""
         if user_input is not None:
             self.configured_sources = user_input[CONF_SOURCES]
+            self.timeout = user_input[CONF_TIMEOUT]
+            self.interval = user_input[CONF_SCAN_INTERVAL]
             return await self.async_step_main_menu(None)
         return self.async_show_form(
             step_id="sources",
@@ -138,7 +140,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             mode=selector.NumberSelectorMode.BOX,
-                            min=120,
+                            min=1,
                             max=1440,
                             unit_of_measurement="m",
                         )
@@ -287,6 +289,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 user_input[CONF_SOURCES] = list(SOURCE_MAP)
             user_input[CONF_AREAS] = self.configured_areas
+            user_input[CONF_SCAN_INTERVAL] = self.interval
+            user_input[CONF_TIMEOUT] = self.timeout
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
@@ -304,12 +308,24 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
     configured_sources = []
     configuring_area = {}
     configuring_index = -1
+    timeout = 10
+    interval = 1440
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
-        self.configured_areas = self.config_entry.data.get(CONF_AREAS, [])
-        self.configured_sources = self.config_entry.data.get(CONF_SOURCES, [])
+        self.configured_areas = config_entry.options.get(
+            CONF_AREAS, config_entry.data.get(CONF_AREAS, [])
+        )
+        self.configured_sources = config_entry.options.get(
+            CONF_SOURCES, config_entry.data.get(CONF_SOURCES, [])
+        )
+        self.timeout = config_entry.options.get(
+            CONF_TIMEOUT, config_entry.data.get(CONF_TIMEOUT, 10)
+        )
+        self.interval = config_entry.options.get(
+            CONF_SCAN_INTERVAL, config_entry.data.get(CONF_SCAN_INTERVAL, 1440)
+        )
 
     @property
     def configured_area_names(self) -> list[str]:
@@ -338,6 +354,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         """Set data source config."""
         if user_input is not None:
             self.configured_sources = user_input[CONF_SOURCES]
+            self.timeout = user_input[CONF_TIMEOUT]
+            self.interval = user_input[CONF_SCAN_INTERVAL]
             return await self.async_step_main_menu(None)
         return self.async_show_form(
             step_id="sources",
@@ -351,7 +369,29 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                             options=list(SOURCE_MAP),
                             multiple=True,
                         )
-                    )
+                    ),
+                    vol.Optional(
+                        CONF_TIMEOUT,
+                        default=self.timeout,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            min=5,
+                            max=60,
+                            unit_of_measurement="s",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL,
+                        default=self.interval,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            min=1,
+                            max=1440,
+                            unit_of_measurement="m",
+                        )
+                    ),
                 }
             ),
         )
@@ -495,6 +535,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                 else list(SOURCE_MAP)
             )
             user_input[CONF_AREAS] = self.configured_areas
+            user_input[CONF_SCAN_INTERVAL] = self.interval
+            user_input[CONF_TIMEOUT] = self.timeout
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 

@@ -29,7 +29,7 @@ from .const import DOMAIN, CONF_AREAS, CONF_SOURCES
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = [Platform.DEVICE_TRACKER]
+PLATFORMS = [Platform.SENSOR]
 
 
 def _build_configured_areas(hass_areas: dict) -> list[dict]:
@@ -74,6 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
         """Update listener."""
+        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
         await hass.config_entries.async_reload(entry.entry_id)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
@@ -112,12 +113,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
         except ValueError as err:
             raise HomeAssistantError("Country not available for fuel data.") from err
-        locations_built = []
-        for loc in locations:
-            await loc.dynamic_build_fuels()
-            locations_built.append(loc.__dict__())
 
-        return {"items": locations_built, "sources": entry.data.get("sources", [])}
+        return {"items": locations, "sources": entry.data.get("sources", [])}
+
+    async def handle_force_update(call: ServiceCall):
+        """Handle a request to force update."""
+        await fuel_prices.update(force=True)
 
     hass.services.async_register(
         DOMAIN,
@@ -133,14 +134,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
 
+    hass.services.async_register(DOMAIN, "force_update", handle_force_update)
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("Unloading config entry %s", entry.entry_id)
+    await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

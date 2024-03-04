@@ -16,7 +16,8 @@
                 }
             },
             "area_menu": {
-                "title": "Configure areas to register devices and sensors, by default your home location has already been added automatically with a radius of 20 miles, this can be removed or changed if needed.",
+                "title": "Configure areas to register devices and sensors.",
+                "description": "By default your home location has already been added automatically with a radius of 20 miles, this can be removed or changed if needed.",
                 "menu_options": {
                     "area_create": "Create an area",
                     "area_update_select": "Update an area",
