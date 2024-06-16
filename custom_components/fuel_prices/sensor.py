@@ -60,7 +60,9 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the native value of the entity."""
-        return self._fuel_station.name
+        if self.state_value == "name":
+            return self._fuel_station.name
+        return self._get_fuels.get(self.state_value, self._fuel_station.name)
 
     @property
     def _get_fuels(self) -> dict:
