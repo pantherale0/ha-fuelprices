@@ -8,7 +8,7 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -90,3 +90,24 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
     def name(self) -> str:
         """Return the name of the entity."""
         return self._fuel_station.name
+
+    @property
+    def device_class(self) -> SensorDeviceClass:
+        """Return type of entity."""
+        if self.state_value == "name":
+            return None
+        return SensorDeviceClass.MONETARY
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return unit of measurement."""
+        if self.state_value == "name":
+            return None
+        return self._fuel_station.currency.upper()
+
+    @property
+    def state_class(self) -> str:
+        """Return state type."""
+        if self.state_value == "name":
+            return None
+        return "total"
