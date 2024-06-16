@@ -14,7 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
-from .const import CONF_AREAS, DOMAIN
+from .const import CONF_AREAS, DOMAIN, CONF_STATE_VALUE
 from .entity import FuelStationEntity
 from .coordinator import FuelPricesCoordinator
 
@@ -29,6 +29,9 @@ async def async_setup_entry(
     areas = entry.data[CONF_AREAS]
     entities = []
     found_entities = []
+    state_value = entry.options.get(
+        CONF_STATE_VALUE, entry.data.get(CONF_STATE_VALUE, "name")
+    )
     for area in areas:
         _LOGGER.debug("Registering entities for area %s", area[CONF_NAME])
         for station in await cooridinator.api.find_fuel_locations_from_point(
@@ -42,7 +45,8 @@ async def async_setup_entry(
                         fuel_station_id=station["id"],
                         entity_id="devicetracker",
                         source=station["props"][PROP_FUEL_LOCATION_SOURCE],
-                        area=area[CONF_NAME]
+                        area=area[CONF_NAME],
+                        state_value=state_value
                     )
                 )
                 found_entities.append(station["id"])

@@ -11,7 +11,7 @@ class FuelStationEntity(CoordinatorEntity):
     """Represents a fuel station."""
 
     def __init__(
-        self, coordinator: FuelPricesCoordinator, fuel_station_id, entity_id, source, area
+        self, coordinator: FuelPricesCoordinator, fuel_station_id, entity_id, source, area, state_value
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
@@ -20,6 +20,7 @@ class FuelStationEntity(CoordinatorEntity):
         self._entity_id = entity_id
         self._fuel_station_source = str(source).lower()
         self.area = area
+        self.state_value = state_value
 
     @property
     def _fuel_station(self):
