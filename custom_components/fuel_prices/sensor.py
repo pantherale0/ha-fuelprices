@@ -69,7 +69,11 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return extra state attributes."""
-        return {**self._fuel_station.__dict__(), **self._get_fuels, **{"area", self.area}}
+        return {
+            **self._fuel_station.__dict__(),
+            **self._get_fuels,
+            "area": self.area
+        }
 
     @property
     def icon(self) -> str:
