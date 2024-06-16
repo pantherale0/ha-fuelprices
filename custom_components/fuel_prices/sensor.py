@@ -42,6 +42,7 @@ async def async_setup_entry(
                         fuel_station_id=station["id"],
                         entity_id="devicetracker",
                         source=station["props"][PROP_FUEL_LOCATION_SOURCE],
+                        area=area[CONF_NAME]
                     )
                 )
                 found_entities.append(station["id"])
@@ -68,7 +69,7 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return extra state attributes."""
-        return {**self._fuel_station.__dict__(), **self._get_fuels}
+        return {**self._fuel_station.__dict__(), **self._get_fuels, **{"area", self.area}}
 
     @property
     def icon(self) -> str:
