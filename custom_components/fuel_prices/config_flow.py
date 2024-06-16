@@ -22,7 +22,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 
-from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES
+from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,6 +145,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             unit_of_measurement="m",
                         )
                     ),
+                    vol.Optional(
+                        CONF_STATE_VALUE,
+                        default="name"
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=False,
+                            autocomplete=False,
+                            type=selector.TextSelectorType.TEXT
+                        )
+                    )
                 }
             ),
         )
@@ -285,7 +295,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self.configured_sources) > 0:
                 user_input[CONF_SOURCES] = self.configured_sources
             elif self.hass.config.country is not None:
-                user_input[CONF_SOURCES] = COUNTRY_MAP.get(self.hass.config.country)
+                user_input[CONF_SOURCES] = COUNTRY_MAP.get(
+                    self.hass.config.country)
             else:
                 user_input[CONF_SOURCES] = list(SOURCE_MAP)
             user_input[CONF_AREAS] = self.configured_areas
@@ -310,6 +321,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
     configuring_index = -1
     timeout = 10
     interval = 1440
+    state_value = "name"
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
@@ -325,6 +337,9 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         )
         self.interval = config_entry.options.get(
             CONF_SCAN_INTERVAL, config_entry.data.get(CONF_SCAN_INTERVAL, 1440)
+        )
+        self.state_value = config_entry.options.get(
+            CONF_STATE_VALUE, config_entry.data.get(CONF_STATE_VALUE, "name")
         )
 
     @property
@@ -392,6 +407,16 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                             unit_of_measurement="m",
                         )
                     ),
+                    vol.Optional(
+                        CONF_STATE_VALUE,
+                        default=self.state_value
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=False,
+                            autocomplete=False,
+                            type=selector.TextSelectorType.TEXT
+                        )
+                    )
                 }
             ),
         )

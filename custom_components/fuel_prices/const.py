@@ -5,3 +5,5 @@ NAME = "Fuel Prices"
 
 CONF_AREAS = "areas"
 CONF_SOURCES = "sources"
+
+CONF_STATE_VALUE = "state"

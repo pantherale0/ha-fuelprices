@@ -12,7 +12,8 @@
                 "data": {
                     "sources": "Data source(s)",
                     "timeout": "Data source timeout",
-                    "scan_interval": "Data source update interval"
+                    "scan_interval": "Data source update interval",
+                    "state": "State to show on the created sensors"
                 }
             },
             "area_menu": {
@@ -98,7 +99,8 @@
                 "title": "Configure data collection sources",
                 "description": "Using this menu you can change what providers the integration will collect data from.",
                 "data": {
-                    "sources": "Data source(s)"
+                    "sources": "Data source(s)",
+                    "state": "State to show on the created sensors"
                 }
             },
             "area_menu": {
