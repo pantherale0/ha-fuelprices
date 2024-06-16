@@ -56,6 +56,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     configured_sources = []
     configuring_area = {}
     configuring_index = -1
+    state_value = "name"
     timeout = None
     interval = None
 
@@ -143,16 +144,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             min=1,
                             max=1440,
                             unit_of_measurement="m",
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_STATE_VALUE,
-                        default="name"
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            multiline=False,
-                            autocomplete=False,
-                            type=selector.TextSelectorType.TEXT
                         )
                     )
                 }
@@ -302,6 +293,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
+            user_input[CONF_STATE_VALUE] = self.state_value
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
@@ -371,6 +363,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
             self.configured_sources = user_input[CONF_SOURCES]
             self.timeout = user_input[CONF_TIMEOUT]
             self.interval = user_input[CONF_SCAN_INTERVAL]
+            self.state_value = user_input[CONF_STATE_VALUE]
             return await self.async_step_main_menu(None)
         return self.async_show_form(
             step_id="sources",
@@ -413,7 +406,6 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             multiline=False,
-                            autocomplete=False,
                             type=selector.TextSelectorType.TEXT
                         )
                     )
@@ -562,6 +554,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
+            user_input[CONF_STATE_VALUE] = self.state_value
             return self.async_create_entry(title=NAME, data=user_input)
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
