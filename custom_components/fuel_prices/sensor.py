@@ -7,15 +7,16 @@ import logging
 
 from collections.abc import Mapping
 from typing import Any
+from datetime import datetime
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
 from .const import CONF_AREAS, DOMAIN, CONF_STATE_VALUE
-from .entity import FuelStationEntity
+from .entity import FuelStationEntity, CheapestFuelEntity
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -104,3 +105,23 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
         if isinstance(self.native_value, str):
             return None
         return "total"
+
+
+class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
+    """A entity that shows the cheapest fuel for an area."""
+    _attr_should_poll = True  # we need to query the module for this data
+    _last_update = None
+    _next_update = datetime.now()
+    _cached_data = None
+
+    async def async_update(self) -> None:
+        """Update device data."""
+        if (self._last_update is not None) and (
+            self._next_update > datetime.now()
+        ):
+            return True
+        data = await self.coordinator.api.find_fuel_from_point(
+            coordinates=self._coords,
+            fuel_type=self._fuel,
+            radius=self._radius
+        )
