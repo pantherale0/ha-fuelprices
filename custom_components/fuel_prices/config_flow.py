@@ -22,7 +22,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 
-from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE
+from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +44,15 @@ AREA_SCHEMA = vol.Schema(
         vol.Inclusive(
             CONF_LONGITUDE, "coordinates", "Latitude and longitude must exist together"
         ): cv.longitude,
+        vol.Optional(CONF_CHEAPEST_SENSORS, default=False): selector.BooleanSelector(),
+        vol.Optional(CONF_CHEAPEST_SENSORS_COUNT, default=5): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                mode=selector.NumberSelectorMode.SLIDER,
+                min=1,
+                max=10,
+                step=1
+            )
+        )
     }
 )
 
@@ -217,6 +226,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT]
                 }
             )
             return await self.async_step_area_menu()
@@ -250,6 +261,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "Latitude and longitude must exist together",
                         default=self.configuring_area[CONF_LONGITUDE],
                     ): cv.longitude,
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS]
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_COUNT,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_COUNT]
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.SLIDER,
+                            min=1,
+                            max=10,
+                            step=1
+                        )
+                    )
                 }
             ),
             errors=errors,
@@ -435,6 +461,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT]
                 }
             )
             return await self.async_step_area_menu()
@@ -480,6 +508,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT]
                 }
             )
             return await self.async_step_area_menu()
@@ -513,6 +543,21 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                         "Latitude and longitude must exist together",
                         default=self.configuring_area[CONF_LONGITUDE],
                     ): cv.longitude,
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS]
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_COUNT,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_COUNT]
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.SLIDER,
+                            min=1,
+                            max=10,
+                            step=1
+                        )
+                    )
                 }
             ),
             errors=errors,

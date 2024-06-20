@@ -33,7 +33,9 @@
                     "name": "Area name (must be unique)",
                     "radius": "Maximum search radius",
                     "latitude": "Latitude for the center of the search location",
-                    "longitude": "Longitude for the center of the search location"
+                    "longitude": "Longitude for the center of the search location",
+                    "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
                 }
             },
             "area_update_select": {
@@ -49,7 +51,9 @@
                     "name": "Area name (must be unique)",
                     "radius": "Maximum search radius",
                     "latitude": "Latitude for the center of the search location",
-                    "longitude": "Longitude for the center of the search location"
+                    "longitude": "Longitude for the center of the search location",
+                    "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
                 }
             },
             "area_delete": {
@@ -119,7 +123,9 @@
                     "name": "Area name (must be unique)",
                     "radius": "Maximum search radius",
                     "latitude": "Latitude for the center of the search location",
-                    "longitude": "Longitude for the center of the search location"
+                    "longitude": "Longitude for the center of the search location",
+                    "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
                 }
             },
             "area_update_select": {
@@ -135,7 +141,9 @@
                     "name": "Area name (must be unique)",
                     "radius": "Maximum search radius",
                     "latitude": "Latitude for the center of the search location",
-                    "longitude": "Longitude for the center of the search location"
+                    "longitude": "Longitude for the center of the search location",
+                    "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
                 }
             },
             "area_delete": {
