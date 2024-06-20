@@ -26,7 +26,7 @@ async def async_setup_entry(
 ) -> None:
     """Integration platform creation."""
     cooridinator: FuelPricesCoordinator = hass.data[DOMAIN][entry.entry_id]
-    areas = entry.data[CONF_AREAS]
+    areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, []))
     entities = []
     found_entities = []
     state_value = entry.options.get(
