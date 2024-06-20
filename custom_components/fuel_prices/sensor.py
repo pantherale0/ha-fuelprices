@@ -94,13 +94,13 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return unit of measurement."""
-        if self.state_value == "name":
+        if isinstance(self.native_value, str):
             return None
         return self._fuel_station.currency.upper()
 
     @property
     def state_class(self) -> str:
         """Return state type."""
-        if self.state_value == "name":
+        if isinstance(self.native_value, str):
             return None
         return "total"
