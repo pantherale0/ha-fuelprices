@@ -1,5 +1,5 @@
 colorlog==6.7.0
-homeassistant==2023.8.0
+homeassistant==2024.3.3
 pip>=21.0,<23.2
 ruff==0.0.292
-pyfuelprices==2.3.4
+pyfuelprices==2.5.1

@@ -35,7 +35,8 @@
                     "latitude": "Latitude for the center of the search location",
                     "longitude": "Longitude for the center of the search location",
                     "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
-                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create",
+                    "cheapest_stations_fuel_type": "The fuel type to use for the cheapest fuel station entites"
                 }
             },
             "area_update_select": {
@@ -53,7 +54,8 @@
                     "latitude": "Latitude for the center of the search location",
                     "longitude": "Longitude for the center of the search location",
                     "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
-                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create",
+                    "cheapest_stations_fuel_type": "The fuel type to use for the cheapest fuel station entites"
                 }
             },
             "area_delete": {
@@ -125,7 +127,8 @@
                     "latitude": "Latitude for the center of the search location",
                     "longitude": "Longitude for the center of the search location",
                     "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
-                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create",
+                    "cheapest_stations_fuel_type": "The fuel type to use for the cheapest fuel station entites"
                 }
             },
             "area_update_select": {
@@ -143,7 +146,8 @@
                     "latitude": "Latitude for the center of the search location",
                     "longitude": "Longitude for the center of the search location",
                     "cheapest_stations": "Register entities for top n cheapest fuel stations in this area",
-                    "cheapest_stations_count": "Number of cheapest fuel station entities to create"
+                    "cheapest_stations_count": "Number of cheapest fuel station entities to create",
+                    "cheapest_stations_fuel_type": "The fuel type to use for the cheapest fuel station entites"
                 }
             },
             "area_delete": {

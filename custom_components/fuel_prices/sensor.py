@@ -7,15 +7,15 @@ import logging
 
 from collections.abc import Mapping
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME, STATE_UNKNOWN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
-from .const import CONF_AREAS, DOMAIN, CONF_STATE_VALUE
+from .const import CONF_AREAS, DOMAIN, CONF_STATE_VALUE, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 from .entity import FuelStationEntity, CheapestFuelEntity
 from .coordinator import FuelPricesCoordinator
 
@@ -51,7 +51,19 @@ async def async_setup_entry(
                     )
                 )
                 found_entities.append(station["id"])
-
+        if area[CONF_CHEAPEST_SENSORS]:
+            _LOGGER.debug("Registering %s cheapest entities for area %s",
+                          area[CONF_CHEAPEST_SENSORS_COUNT],
+                          area[CONF_NAME])
+            for x in range(0, int(area[CONF_CHEAPEST_SENSORS_COUNT]), 1):
+                entities.append(CheapestFuelSensor(
+                    coordinator=cooridinator,
+                    count=x+1,
+                    area=area[CONF_NAME],
+                    fuel=area[CONF_CHEAPEST_SENSORS_FUEL_TYPE],
+                    coords=(area[CONF_LATITUDE], area[CONF_LONGITUDE]),
+                    radius=area[CONF_RADIUS]
+                ))
     async_add_entities(entities, True)
 
 
@@ -125,3 +137,35 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
             fuel_type=self._fuel,
             radius=self._radius
         )
+        if len(data) >= (int(self._count)-1):
+            self._cached_data = data[int(self._count)-1]
+            return True
+        self._cached_data = None
+        self._next_update = datetime.now() + timedelta(days=1)
+
+    @property
+    def native_value(self) -> str | float:
+        """Return state of entity."""
+        if self._cached_data is not None:
+            return self._cached_data["cost"]
+        return STATE_UNKNOWN
+
+    @property
+    def name(self) -> str:
+        """Name of the entity."""
+        return f"{self._area} cheapest {self._fuel} {self._count}"
+
+    @property
+    def state_class(self) -> str:
+        """Return state type."""
+        if isinstance(self.native_value, float):
+            return "total"
+        return None
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return extra state attributes."""
+        return {
+            "area": self._area,
+            **self._cached_data
+        }
