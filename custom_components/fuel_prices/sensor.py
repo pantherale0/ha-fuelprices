@@ -121,6 +121,7 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
 
 class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
     """A entity that shows the cheapest fuel for an area."""
+
     _attr_should_poll = True  # we need to query the module for this data
     _last_update = None
     _next_update = datetime.now()
