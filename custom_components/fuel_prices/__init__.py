@@ -16,6 +16,7 @@ from homeassistant.const import (
     CONF_RADIUS,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    CONF_NAME
 )
 from homeassistant.core import (
     HomeAssistant,
@@ -25,7 +26,7 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_AREAS, CONF_SOURCES
+from .const import DOMAIN, CONF_AREAS, CONF_SOURCES, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,7 +49,8 @@ def _build_configured_areas(hass_areas: dict) -> list[dict]:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Create ConfigEntry."""
     _LOGGER.debug("Got request to setup entry.")
-    sources = entry.options.get(CONF_SOURCES, entry.data.get(CONF_SOURCES, None))
+    sources = entry.options.get(
+        CONF_SOURCES, entry.data.get(CONF_SOURCES, None))
     areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, None))
     timeout = entry.options.get(CONF_TIMEOUT, entry.data.get(CONF_TIMEOUT, 30))
     update_interval = entry.options.get(
@@ -72,13 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error(err)
         raise CannotConnect from err
 
-    async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
-        """Update listener."""
-        await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
-        await hass.config_entries.async_reload(entry.entry_id)
-
-    entry.async_on_unload(entry.add_update_listener(update_listener))
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def handle_fuel_lookup(call: ServiceCall) -> ServiceResponse:
@@ -97,7 +92,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
             }
         except ValueError as err:
-            raise HomeAssistantError("Country not available for fuel data.") from err
+            raise HomeAssistantError(
+                "Country not available for fuel data.") from err
 
     async def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel location lookup call."""
@@ -112,7 +108,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 (lat, long), radius
             )
         except ValueError as err:
-            raise HomeAssistantError("Country not available for fuel data.") from err
+            raise HomeAssistantError(
+                "Country not available for fuel data.") from err
 
         return {"items": locations, "sources": entry.data.get("sources", [])}
 
@@ -136,6 +133,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.services.async_register(DOMAIN, "force_update", handle_force_update)
 
+    async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
+        """Update listener."""
+        await hass.config_entries.async_reload(entry.entry_id)
+
+    entry.async_on_unload(entry.add_update_listener(update_listener))
+
     return True
 
 
@@ -147,6 +150,37 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+# Example migration function
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating configuration from version %s",
+                  config_entry.version)
+
+    if config_entry.version > 1:
+        # This means the user has downgraded from a future version
+        return False
+
+    if config_entry.version == 1:
+
+        new_data = {**config_entry.data}
+        if config_entry.options:
+            new_data = {**config_entry.options}
+        for area in new_data[CONF_AREAS]:
+            _LOGGER.debug("Upgrading area definition for %s", area[CONF_NAME])
+            area[CONF_CHEAPEST_SENSORS] = False
+            area[CONF_CHEAPEST_SENSORS_COUNT] = 5
+            area[CONF_CHEAPEST_SENSORS_FUEL_TYPE] = ""
+
+        hass.config_entries.async_update_entry(
+            config_entry, data=new_data, version=2)
+
+    _LOGGER.debug("Migration to configuration version %s successful",
+                  config_entry.version)
+
+    return True
 
 
 class CannotConnect(HomeAssistantError):

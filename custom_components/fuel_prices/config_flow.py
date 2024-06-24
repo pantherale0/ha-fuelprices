@@ -22,7 +22,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 
-from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE
+from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +44,16 @@ AREA_SCHEMA = vol.Schema(
         vol.Inclusive(
             CONF_LONGITUDE, "coordinates", "Latitude and longitude must exist together"
         ): cv.longitude,
+        vol.Optional(CONF_CHEAPEST_SENSORS, default=False): selector.BooleanSelector(),
+        vol.Optional(CONF_CHEAPEST_SENSORS_COUNT, default=5): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                mode=selector.NumberSelectorMode.SLIDER,
+                min=1,
+                max=10,
+                step=1
+            )
+        ),
+        vol.Optional(CONF_CHEAPEST_SENSORS_FUEL_TYPE, default=""): selector.TextSelector(),
     }
 )
 
@@ -51,7 +61,7 @@ AREA_SCHEMA = vol.Schema(
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
-    VERSION = 1
+    VERSION = 2
     configured_areas: list[dict] = []
     configured_sources = []
     configuring_area = {}
@@ -172,6 +182,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
                 }
             )
             return await self.async_step_area_menu()
@@ -217,6 +230,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
                 }
             )
             return await self.async_step_area_menu()
@@ -250,6 +266,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "Latitude and longitude must exist together",
                         default=self.configuring_area[CONF_LONGITUDE],
                     ): cv.longitude,
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS]
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_COUNT,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_COUNT]
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.SLIDER,
+                            min=1,
+                            max=10,
+                            step=1
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_FUEL_TYPE,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    ): selector.TextSelector()
                 }
             ),
             errors=errors,
@@ -341,6 +376,19 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         for area in self.configured_areas:
             items.append(area["name"])
         return items
+
+    async def _async_create_entry(self) -> config_entries.FlowResult:
+        """Create an entry."""
+        return self.async_create_entry(
+            title=self.config_entry.title,
+            data={
+                CONF_AREAS: self.configured_areas,
+                CONF_SOURCES: self.configured_sources,
+                CONF_SCAN_INTERVAL: self.interval,
+                CONF_TIMEOUT: self.timeout,
+                CONF_STATE_VALUE: self.state_value
+            }
+        )
 
     async def async_step_init(self, _: None = None):
         """User init option flow."""
@@ -435,6 +483,9 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
                 }
             )
             return await self.async_step_area_menu()
@@ -480,6 +531,9 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
+                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
                 }
             )
             return await self.async_step_area_menu()
@@ -513,6 +567,25 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
                         "Latitude and longitude must exist together",
                         default=self.configuring_area[CONF_LONGITUDE],
                     ): cv.longitude,
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS]
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_COUNT,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_COUNT]
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.SLIDER,
+                            min=1,
+                            max=10,
+                            step=1
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_FUEL_TYPE,
+                        default=self.configuring_area[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    ): selector.TextSelector()
                 }
             ),
             errors=errors,
@@ -546,16 +619,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlow):
         """Save configuration."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            user_input[CONF_SOURCES] = (
-                self.configured_sources
-                if len(self.configured_sources) > 0
-                else list(SOURCE_MAP)
-            )
-            user_input[CONF_AREAS] = self.configured_areas
-            user_input[CONF_SCAN_INTERVAL] = self.interval
-            user_input[CONF_TIMEOUT] = self.timeout
-            user_input[CONF_STATE_VALUE] = self.state_value
-            return self.async_create_entry(title=NAME, data=user_input)
+            return await self._async_create_entry()
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
 

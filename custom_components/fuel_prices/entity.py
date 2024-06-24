@@ -33,3 +33,23 @@ class FuelStationEntity(CoordinatorEntity):
     def unique_id(self) -> str | None:
         """Return unique ID."""
         return f"fuelprices_{self._fuel_station_id}_{self._entity_id}"
+
+
+class CheapestFuelEntity(CoordinatorEntity):
+    """Represents a fuel."""
+
+    def __init__(
+            self, coordinator: FuelPricesCoordinator, count: str, area: str, fuel: str, coords: tuple, radius: float):
+        """Initialize."""
+        super().__init__(coordinator)
+        self.coordinator: FuelPricesCoordinator = coordinator
+        self._count = count
+        self._area = area
+        self._coords = coords
+        self._radius = radius
+        self._fuel = fuel
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return unique ID."""
+        return f"fuelprices_cheapest_{self._fuel}_{self._count}_{self._area}"
