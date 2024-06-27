@@ -142,7 +142,8 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
             self._cached_data = data[int(self._count)-1]
             return True
         self._cached_data = None
-        self._next_update = datetime.now() + timedelta(days=1)
+        self._last_update = datetime.now()
+        self._next_update = datetime.now() + timedelta(minutes=5)
 
     @property
     def native_value(self) -> str | float:
@@ -168,5 +169,7 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
         """Return extra state attributes."""
         return {
             "area": self._area,
-            **self._cached_data
+            **self._cached_data,
+            "last_updated": self._last_update,
+            "next_update": self._next_update
         }
