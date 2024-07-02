@@ -51,7 +51,7 @@ async def async_setup_entry(
                     )
                 )
                 found_entities.append(station["id"])
-        if area[CONF_CHEAPEST_SENSORS]:
+        if area.get(CONF_CHEAPEST_SENSORS, False):
             _LOGGER.debug("Registering %s cheapest entities for area %s",
                           area[CONF_CHEAPEST_SENSORS_COUNT],
                           area[CONF_NAME])
