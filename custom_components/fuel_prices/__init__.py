@@ -4,6 +4,7 @@ import contextlib
 import logging
 
 from datetime import timedelta
+from dataclasses import dataclass
 
 from pyfuelprices import FuelPrices
 from pyfuelprices.const import PROP_AREA_LAT, PROP_AREA_LONG, PROP_AREA_RADIUS
@@ -29,8 +30,18 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import DOMAIN, CONF_AREAS, CONF_SOURCES, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 from .coordinator import FuelPricesCoordinator
 
+type FuelPricesConfigEntry = ConfigEntry[FuelPricesConfig]
+
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.SENSOR]
+
+
+@dataclass
+class FuelPricesConfig:
+    """Represent a config for Anglian Water."""
+
+    coordinator: FuelPricesCoordinator
+    areas: list[dict]
 
 
 def _build_configured_areas(hass_areas: dict) -> list[dict]:
@@ -46,9 +57,8 @@ def _build_configured_areas(hass_areas: dict) -> list[dict]:
     return module_areas
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -> bool:
     """Create ConfigEntry."""
-    _LOGGER.debug("Got request to setup entry.")
     sources = entry.options.get(
         CONF_SOURCES, entry.data.get(CONF_SOURCES, None))
     areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, None))
@@ -65,16 +75,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             timeout=timedelta(seconds=timeout),
             update_interval=timedelta(minutes=update_interval),
         )
-        with contextlib.suppress(TimeoutError):
-            await fuel_prices.update()
-        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = FuelPricesCoordinator(
-            hass, fuel_prices, entry.entry_id
-        )
     except Exception as err:
         _LOGGER.error(err)
         raise CannotConnect from err
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    coordinator = FuelPricesCoordinator(
+        hass=hass, api=fuel_prices, name=entry.entry_id)
+    await coordinator.async_config_entry_first_refresh()
 
     async def handle_fuel_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel lookup call."""
@@ -133,22 +140,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.services.async_register(DOMAIN, "force_update", handle_force_update)
 
-    async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
+    entry.runtime_data = FuelPricesConfig(coordinator=coordinator, areas=areas)
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    async def update_listener(hass: HomeAssistant, entry: FuelPricesConfigEntry):
         """Update listener."""
         await hass.config_entries.async_reload(entry.entry_id)
 
-    entry.async_on_unload(entry.add_update_listener(update_listener))
+    entry.add_update_listener(update_listener)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("Unloading config entry %s", entry.entry_id)
-    await hass.data[DOMAIN][entry.entry_id].api.client_session.close()
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-
+    await entry.runtime_data.coordinator.api.client_session.close()
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     return unload_ok
 
 # Example migration function

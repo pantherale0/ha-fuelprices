@@ -15,6 +15,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
+from . import FuelPricesConfigEntry
 from .const import CONF_AREAS, DOMAIN, CONF_STATE_VALUE, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 from .entity import FuelStationEntity, CheapestFuelEntity
 from .coordinator import FuelPricesCoordinator
@@ -23,26 +24,24 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: FuelPricesConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Integration platform creation."""
-    cooridinator: FuelPricesCoordinator = hass.data[DOMAIN][entry.entry_id]
-    areas = entry.options.get(CONF_AREAS, entry.data.get(CONF_AREAS, []))
     entities = []
     found_entities = []
     state_value = entry.options.get(
         CONF_STATE_VALUE, entry.data.get(CONF_STATE_VALUE, "name")
     )
-    for area in areas:
+    for area in entry.runtime_data.areas:
         _LOGGER.debug("Registering entities for area %s", area[CONF_NAME])
-        for station in await cooridinator.api.find_fuel_locations_from_point(
+        for station in await entry.runtime_data.coordinator.api.find_fuel_locations_from_point(
             coordinates=(area[CONF_LATITUDE], area[CONF_LONGITUDE]),
             radius=area[CONF_RADIUS],
         ):
             if station["id"] not in found_entities:
                 entities.append(
                     FeulStationTracker(
-                        coordinator=cooridinator,
+                        coordinator=entry.runtime_data.coordinator,
                         fuel_station_id=station["id"],
                         entity_id="devicetracker",
                         source=station["props"][PROP_FUEL_LOCATION_SOURCE],
@@ -57,7 +56,7 @@ async def async_setup_entry(
                           area[CONF_NAME])
             for x in range(0, int(area[CONF_CHEAPEST_SENSORS_COUNT]), 1):
                 entities.append(CheapestFuelSensor(
-                    coordinator=cooridinator,
+                    coordinator=entry.runtime_data.coordinator,
                     count=x+1,
                     area=area[CONF_NAME],
                     fuel=area[CONF_CHEAPEST_SENSORS_FUEL_TYPE],
