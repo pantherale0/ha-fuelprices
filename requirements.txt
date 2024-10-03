@@ -1,5 +1,5 @@
 colorlog==6.7.0
-homeassistant==2024.7.1
+git+https://github.com/home-assistant/core@dev
 pip>=21.0,<23.2
 ruff==0.0.292
 pyfuelprices==2024.9.1
