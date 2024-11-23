@@ -10,6 +10,7 @@ from typing import Any
 from datetime import datetime, timedelta
 
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -117,6 +118,13 @@ class FeulStationTracker(FuelStationEntity, SensorEntity):
             return None
         return "total"
 
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        """Return device class."""
+        if isinstance(self.native_value, str):
+            return None
+        return SensorDeviceClass.MONETARY
+
 
 class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
     """A entity that shows the cheapest fuel for an area."""
@@ -126,6 +134,7 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
     _last_update = None
     _next_update = datetime.now()
     _cached_data = None
+    _attr_device_class = SensorDeviceClass.MONETARY
 
     async def async_update(self) -> None:
         """Update device data."""
@@ -176,6 +185,6 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
         """Return extra state attributes."""
         data = self._cached_data
         data["area"] = self._area
-        data["last_updated"] = self._last_update
-        data["next_update"] = self._next_update
+        data["sensor_last_poll"] = self._last_update
+        data["sensor_next_poll"] = self._next_update
         return data
