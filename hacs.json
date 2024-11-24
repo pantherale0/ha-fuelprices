@@ -2,7 +2,7 @@
     "name": "Fuel Prices",
     "filename": "fuel_prices.zip",
     "hide_default_branch": true,
-    "homeassistant": "2024.3.3",
+    "homeassistant": "2024.11.3",
     "render_readme": true,
     "zip_release": true
 }
