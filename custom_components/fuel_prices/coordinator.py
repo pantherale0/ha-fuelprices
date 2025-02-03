@@ -7,6 +7,7 @@ import async_timeout
 
 from homeassistant.core import HomeAssistant
 from pyfuelprices import FuelPrices
+from pyfuelprices.sources import UpdateFailedError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +32,11 @@ class FuelPricesCoordinator(DataUpdateCoordinator):
             async with async_timeout.timeout(240):
                 return await self.api.update()
         except TimeoutError as err:
-            _LOGGER.error("Timeout updating fuel price data: %s", err)
+            _LOGGER.exception("Timeout updating fuel price data: %s", err)
         except TypeError as err:
-            _LOGGER.error("Error updating fuel price data: %s", err)
+            _LOGGER.exception("Error updating fuel price data: %s", err)
+        except UpdateFailedError as err:
+            _LOGGER.exception(
+                "Error communicating with service (%s).", err.status, exc_info=err)
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API {err}") from err
