@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import SensorDeviceClass
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME, STATE_UNKNOWN
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_RADIUS, CONF_NAME, STATE_UNKNOWN, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyfuelprices.const import PROP_FUEL_LOCATION_SOURCE
@@ -47,7 +47,8 @@ async def async_setup_entry(
                         entity_id="devicetracker",
                         source=station["props"][PROP_FUEL_LOCATION_SOURCE],
                         area=area[CONF_NAME],
-                        state_value=state_value
+                        state_value=state_value,
+                        config=entry
                     )
                 )
                 found_entities.append(station["id"])
@@ -62,7 +63,8 @@ async def async_setup_entry(
                     area=area[CONF_NAME],
                     fuel=area[CONF_CHEAPEST_SENSORS_FUEL_TYPE],
                     coords=(area[CONF_LATITUDE], area[CONF_LONGITUDE]),
-                    radius=area[CONF_RADIUS]
+                    radius=area[CONF_RADIUS],
+                    config=entry
                 ))
     async_add_entities(entities, True)
 
@@ -148,7 +150,10 @@ class CheapestFuelSensor(CheapestFuelEntity, SensorEntity):
         )
         if len(data) >= (int(self._count)-1):
             self._last_update = datetime.now()
-            self._next_update = datetime.now() + timedelta(minutes=5)
+            self._next_update = datetime.now() + timedelta(minutes=self.config.options.get(
+                CONF_SCAN_INTERVAL, self.config.data.get(
+                    CONF_SCAN_INTERVAL, 1440)
+            ))
             if len(data) >= self._count:
                 self._cached_data = data[int(self._count)-1]
             else:

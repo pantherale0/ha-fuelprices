@@ -64,7 +64,8 @@ SYSTEM_SCHEMA = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                options=list(SOURCE_MAP),
+                options=[k for k, v in SOURCE_MAP.items() if v[1] ==
+                         1 and v[2] == 1],
                 multiple=True,
             )
         ),
@@ -288,7 +289,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_SOURCES] = COUNTRY_MAP.get(
                     self.hass.config.country)
             else:
-                user_input[CONF_SOURCES] = list(SOURCE_MAP)
+                user_input[CONF_SOURCES] = [
+                    k for k, v in SOURCE_MAP.items() if v[1] == 1 and v[2] == 1]
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
@@ -502,7 +504,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                 user_input[CONF_SOURCES] = COUNTRY_MAP.get(
                     self.hass.config.country)
             else:
-                user_input[CONF_SOURCES] = list(SOURCE_MAP)
+                user_input[CONF_SOURCES] = [
+                    k for k, v in SOURCE_MAP.items() if v[1] == 1 and v[2] == 1]
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
