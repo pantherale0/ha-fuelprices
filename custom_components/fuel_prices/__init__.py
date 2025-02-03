@@ -168,26 +168,34 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     _LOGGER.debug("Migrating configuration from version %s",
                   config_entry.version)
 
-    if config_entry.version > 1:
+    new_data = {**config_entry.data}
+    if config_entry.options:
+        new_data = {**config_entry.options}
+
+    if config_entry.version > 2:
         # This means the user has downgraded from a future version
         return False
 
-    if config_entry.version == 1:
+    if config_entry.version == 2:
+        _LOGGER.warning("Removing jet and morrisons from config entry.")
+        if "morrisons" in new_data[CONF_SOURCES]:
+            new_data[CONF_SOURCES].remove("morrisons")
+        if "jet" in new_data[CONF_SOURCES]:
+            new_data[CONF_SOURCES].remove("jet")
+        hass.config_entries.async_update_entry(
+            config_entry, data=new_data, version=3
+        )
 
-        new_data = {**config_entry.data}
-        if config_entry.options:
-            new_data = {**config_entry.options}
+    if config_entry.version == 1:
         for area in new_data[CONF_AREAS]:
             _LOGGER.debug("Upgrading area definition for %s", area[CONF_NAME])
             area[CONF_CHEAPEST_SENSORS] = False
             area[CONF_CHEAPEST_SENSORS_COUNT] = 5
             area[CONF_CHEAPEST_SENSORS_FUEL_TYPE] = ""
-
         hass.config_entries.async_update_entry(
             config_entry, data=new_data, version=2)
-
-    _LOGGER.debug("Migration to configuration version %s successful",
-                  config_entry.version)
+    _LOGGER.info("Migration to configuration version %s successful",
+                 config_entry.version)
 
     return True
 

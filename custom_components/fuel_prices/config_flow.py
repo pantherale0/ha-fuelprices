@@ -103,7 +103,7 @@ SYSTEM_SCHEMA = vol.Schema(
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
-    VERSION = 2
+    VERSION = 3
     configured_areas: list[dict] = []
     configured_sources = []
     configuring_area = {}
