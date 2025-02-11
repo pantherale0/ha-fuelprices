@@ -1,0 +1,28 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  update_release_draft:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate CalVer version
+        id: calver
+        run: |
+          export VERSION=$(date "+%Y.%m")
+          echo ::set-output name=version::${VERSION}
+          echo "Version set to ${VERSION}"
+      - uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
