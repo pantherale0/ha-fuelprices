@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from pyfuelprices.sources.mapping import SOURCE_MAP, COUNTRY_MAP
+from pyfuelprices.sources.mapping import FULL_COUNTRY_MAP, COUNTRY_MAP
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -25,6 +25,21 @@ from . import FuelPricesConfigEntry
 from .const import DOMAIN, NAME, CONF_AREAS, CONF_SOURCES, CONF_STATE_VALUE, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def build_sources_list() -> list[selector.SelectOptionDict]:
+    """Build source configuration dict."""
+    sources = []
+    for country, srcs in FULL_COUNTRY_MAP.items():
+        for src in srcs:
+            label_val = src
+            if src not in COUNTRY_MAP.get(country, []):
+                label_val = f"{src} (beta)"
+            sources.append(selector.SelectOptionDict(
+                value=src, label=f"{country}: {label_val}"))
+    sources.sort(key=lambda x: x['label'])
+    return sources
+
 
 AREA_SCHEMA = vol.Schema(
     {
@@ -64,8 +79,7 @@ SYSTEM_SCHEMA = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                options=[k for k, v in SOURCE_MAP.items() if v[1] ==
-                         1 and v[2] == 1],
+                options=build_sources_list(),
                 multiple=True,
             )
         ),
@@ -290,7 +304,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass.config.country)
             else:
                 user_input[CONF_SOURCES] = [
-                    k for k, v in SOURCE_MAP.items() if v[1] == 1 and v[2] == 1]
+                    k.value for k in build_sources_list()]
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
@@ -505,7 +519,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     self.hass.config.country)
             else:
                 user_input[CONF_SOURCES] = [
-                    k for k, v in SOURCE_MAP.items() if v[1] == 1 and v[2] == 1]
+                    k.value for k in build_sources_list()]
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout

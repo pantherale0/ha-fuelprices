@@ -7,6 +7,7 @@ on:
     paths:
       - "**"
       - "!docs/**"
+      - "!.github/**"
   pull_request:
     types: [opened, reopened, synchronize]
 
