@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import selector
+from homeassistant.helpers import selector, entity_registry as er
 from homeassistant.helpers import config_validation as cv
 from homeassistant.core import callback
 from homeassistant.const import (
@@ -96,18 +96,6 @@ SYSTEM_SCHEMA = vol.Schema(
     }
 )
 
-OPTIONS_SYSTEM_SCHEMA = SYSTEM_SCHEMA.extend(
-    {
-        vol.Optional(
-            CONF_STATE_VALUE
-        ): selector.TextSelector(
-            selector.TextSelectorConfig(
-                multiline=False,
-                type=selector.TextSelectorType.TEXT
-            )
-        )
-    }
-)
 OPTIONS_AREA_SCHEMA = AREA_SCHEMA.extend(
     {
         vol.Optional(CONF_CHEAPEST_SENSORS, default=False): selector.BooleanSelector(),
@@ -118,8 +106,7 @@ OPTIONS_AREA_SCHEMA = AREA_SCHEMA.extend(
                 max=10,
                 step=1
             )
-        ),
-        vol.Optional(CONF_CHEAPEST_SENSORS_FUEL_TYPE, default=""): selector.TextSelector(),
+        )
     }
 )
 
@@ -361,6 +348,24 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             }
         )
 
+    def build_available_fuels_list(self) -> list:
+        """Build a list of available fuels according to data within entity registry."""
+        fuel_types = []
+        entities = er.async_entries_for_config_entry(
+            er.async_get(self.hass), self.config_entry.entry_id)
+        for entity in entities:
+            state = self.hass.states.get(entity.entity_id).attributes
+            for k in state.get("available_fuels", {}):
+                if k not in fuel_types:
+                    fuel_types.append(k)
+        return fuel_types
+
+    def build_compatible_sensor_states(self) -> list:
+        """Build a list of compatible sensor states for use in select controls."""
+        states = ["name"]
+        states.extend(self.build_available_fuels_list())
+        return states
+
     async def async_step_init(self, _: None = None):
         """User init option flow."""
         self.configured_areas = self.config_entry.options.get(
@@ -403,12 +408,25 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             return await self.async_step_main_menu(None)
         return self.async_show_form(
             step_id="sources",
-            data_schema=self.add_suggested_values_to_schema(OPTIONS_SYSTEM_SCHEMA, {
-                CONF_SOURCES: self.configured_sources,
-                CONF_TIMEOUT: self.timeout,
-                CONF_SCAN_INTERVAL: self.interval,
-                CONF_STATE_VALUE: self.state_value
-            }))
+            data_schema=self.add_suggested_values_to_schema(
+                SYSTEM_SCHEMA.extend({
+                    vol.Required(
+                        CONF_STATE_VALUE
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=self.build_compatible_sensor_states(),
+                            multiple=False,
+                            custom_value=True,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True
+                        )
+                    )
+                }), {
+                    CONF_SOURCES: self.configured_sources,
+                    CONF_TIMEOUT: self.timeout,
+                    CONF_SCAN_INTERVAL: self.interval,
+                    CONF_STATE_VALUE: self.state_value
+                }))
 
     async def async_step_area_menu(self, _: None = None) -> FlowResult:
         """Show the area menu."""
@@ -439,7 +457,21 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             )
             return await self.async_step_area_menu()
         return self.async_show_form(
-            step_id="area_create", data_schema=OPTIONS_AREA_SCHEMA, errors=errors
+            step_id="area_create", data_schema=OPTIONS_AREA_SCHEMA.extend(
+                {
+                    vol.Optional(
+                        CONF_CHEAPEST_SENSORS_FUEL_TYPE
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=self.build_available_fuels_list(),
+                            multiple=False,
+                            custom_value=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True
+                        )
+                    )
+                }
+            ), errors=errors
         )
 
     async def async_step_area_update_select(
@@ -489,7 +521,21 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         return self.async_show_form(
             step_id="area_update",
             data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_AREA_SCHEMA, self.configuring_area),
+                OPTIONS_AREA_SCHEMA.extend(
+                    {
+                        vol.Optional(
+                            CONF_CHEAPEST_SENSORS_FUEL_TYPE
+                        ): selector.SelectSelector(
+                            selector.SelectSelectorConfig(
+                                options=self.build_available_fuels_list(),
+                                multiple=False,
+                                custom_value=False,
+                                mode=selector.SelectSelectorMode.DROPDOWN,
+                                sort=True
+                            )
+                        )
+                    }
+                ), self.configuring_area),
             errors=errors,
         )
 
