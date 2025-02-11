@@ -39,6 +39,7 @@ class FuelPricesConfig:
 
     coordinator: FuelPricesCoordinator
     areas: list[dict]
+    config: ConfigEntry
 
 
 type FuelPricesConfigEntry = ConfigEntry[FuelPricesConfig]
@@ -92,10 +93,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -
         lat = call.data.get("location", {}).get("latitude", default_lat)
         long = call.data.get("location", {}).get("longitude", default_long)
         fuel_type = call.data.get("type")
+        source = call.data.get("source", "")
         try:
             return {
                 "fuels": await fuel_prices.find_fuel_from_point(
-                    (lat, long), radius, fuel_type
+                    (lat, long), radius, fuel_type, source
                 )
             }
         except ValueError as err:
@@ -110,9 +112,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -
         radius = radius / 1609
         lat = call.data.get("location", {}).get("latitude", default_lat)
         long = call.data.get("location", {}).get("longitude", default_long)
+        source = call.data.get("source", "")
         try:
             locations = await fuel_prices.find_fuel_locations_from_point(
-                (lat, long), radius
+                (lat, long), radius, source
             )
         except ValueError as err:
             raise HomeAssistantError(
@@ -140,7 +143,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -
 
     hass.services.async_register(DOMAIN, "force_update", handle_force_update)
 
-    entry.runtime_data = FuelPricesConfig(coordinator=coordinator, areas=areas)
+    entry.runtime_data = FuelPricesConfig(
+        coordinator=coordinator, areas=areas, config=entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -180,8 +184,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         _LOGGER.warning("Removing jet and morrisons from config entry.")
         if "morrisons" in new_data[CONF_SOURCES]:
             new_data[CONF_SOURCES].remove("morrisons")
-        if "jet" in new_data[CONF_SOURCES]:
-            new_data[CONF_SOURCES].remove("jet")
         hass.config_entries.async_update_entry(
             config_entry, data=new_data, version=3
         )
