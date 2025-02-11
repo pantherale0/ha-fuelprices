@@ -41,7 +41,7 @@ async def async_setup_entry(
         ):
             if station["id"] not in found_entities:
                 entities.append(
-                    FeulStationTracker(
+                    FuelStationTracker(
                         coordinator=entry.runtime_data.coordinator,
                         fuel_station_id=station["id"],
                         entity_id="devicetracker",
@@ -69,7 +69,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class FeulStationTracker(FuelStationEntity, SensorEntity):
+class FuelStationTracker(FuelStationEntity, SensorEntity):
     """A fuel station entity."""
 
     @property
