@@ -1,4 +1,4 @@
-version-template: "$CALVER.$PATCH"
+version-template: "$MAJOR.$MINOR.$PATCH"
 name-template: "$CALVER.$NEXT_PATCH_VERSION"
 tag-template: "$CALVER.$NEXT_PATCH_VERSION"
 categories:
