@@ -25,5 +25,5 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - name: "Install requirements"
-        run: python3 -m pip install -r "${{ github.workspace }}/docs/requirements.docs.txt"
+        run: python3 -m pip install -r "${{ github.workspace }}/requirements.docs.txt"
       - run: mkdocs gh-deploy --force
