@@ -58,17 +58,7 @@ AREA_SCHEMA = vol.Schema(
         ): cv.latitude,
         vol.Inclusive(
             CONF_LONGITUDE, "coordinates", "Latitude and longitude must exist together"
-        ): cv.longitude,
-        vol.Optional(CONF_CHEAPEST_SENSORS, default=False): selector.BooleanSelector(),
-        vol.Optional(CONF_CHEAPEST_SENSORS_COUNT, default=5): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                mode=selector.NumberSelectorMode.SLIDER,
-                min=1,
-                max=10,
-                step=1
-            )
-        ),
-        vol.Optional(CONF_CHEAPEST_SENSORS_FUEL_TYPE, default=""): selector.TextSelector(),
+        ): cv.longitude
     }
 )
 
@@ -102,7 +92,12 @@ SYSTEM_SCHEMA = vol.Schema(
                 max=1440,
                 unit_of_measurement="m",
             )
-        ),
+        )
+    }
+)
+
+OPTIONS_SYSTEM_SCHEMA = SYSTEM_SCHEMA.extend(
+    {
         vol.Optional(
             CONF_STATE_VALUE
         ): selector.TextSelector(
@@ -111,6 +106,20 @@ SYSTEM_SCHEMA = vol.Schema(
                 type=selector.TextSelectorType.TEXT
             )
         )
+    }
+)
+OPTIONS_AREA_SCHEMA = AREA_SCHEMA.extend(
+    {
+        vol.Optional(CONF_CHEAPEST_SENSORS, default=False): selector.BooleanSelector(),
+        vol.Optional(CONF_CHEAPEST_SENSORS_COUNT, default=5): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                mode=selector.NumberSelectorMode.SLIDER,
+                min=1,
+                max=10,
+                step=1
+            )
+        ),
+        vol.Optional(CONF_CHEAPEST_SENSORS_FUEL_TYPE, default=""): selector.TextSelector(),
     }
 )
 
@@ -394,7 +403,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             return await self.async_step_main_menu(None)
         return self.async_show_form(
             step_id="sources",
-            data_schema=self.add_suggested_values_to_schema(SYSTEM_SCHEMA, {
+            data_schema=self.add_suggested_values_to_schema(OPTIONS_SYSTEM_SCHEMA, {
                 CONF_SOURCES: self.configured_sources,
                 CONF_TIMEOUT: self.timeout,
                 CONF_SCAN_INTERVAL: self.interval,
@@ -430,7 +439,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             )
             return await self.async_step_area_menu()
         return self.async_show_form(
-            step_id="area_create", data_schema=AREA_SCHEMA, errors=errors
+            step_id="area_create", data_schema=OPTIONS_AREA_SCHEMA, errors=errors
         )
 
     async def async_step_area_update_select(
@@ -480,7 +489,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         return self.async_show_form(
             step_id="area_update",
             data_schema=self.add_suggested_values_to_schema(
-                AREA_SCHEMA, self.configuring_area),
+                OPTIONS_AREA_SCHEMA, self.configuring_area),
             errors=errors,
         )
 
