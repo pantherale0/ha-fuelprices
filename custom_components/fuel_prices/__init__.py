@@ -184,8 +184,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         _LOGGER.warning("Removing jet and morrisons from config entry.")
         if "morrisons" in new_data[CONF_SOURCES]:
             new_data[CONF_SOURCES].remove("morrisons")
-        if "jet" in new_data[CONF_SOURCES]:
-            new_data[CONF_SOURCES].remove("jet")
         hass.config_entries.async_update_entry(
             config_entry, data=new_data, version=3
         )
