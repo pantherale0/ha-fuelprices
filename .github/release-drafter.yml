@@ -1,6 +1,6 @@
-version-template: "$CALVER.$NEXT_PATCH_VERSION"
-name-template: "$RESOLVED_VERSION"
-tag-template: "$RESOLVED_VERSION"
+version-template: "$CALVER.$PATCH"
+name-template: "$CALVER.$NEXT_PATCH_VERSION"
+tag-template: "$CALVER.$NEXT_PATCH_VERSION"
 categories:
   - title: Breaking Changes 🛠
     labels:
