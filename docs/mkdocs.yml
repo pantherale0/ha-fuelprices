@@ -4,7 +4,7 @@ theme:
   features:
     - navigation.instant
     - navigation.instant.progress
-site_url: https://fuelprices.system32.uk
+site_url: https://fuelprices.ha.system32.uk
 plugins:
   - search
   - awesome-pages
