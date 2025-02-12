@@ -99,6 +99,8 @@ class FuelStationTracker(FuelStationEntity, SensorEntity):
     @property
     def icon(self) -> str:
         """Return entity icon."""
+        if self._fuel_station.brand == "Pod Point":
+            return "mdi:battery-charging"
         return "mdi:gas-station"
 
     @property
