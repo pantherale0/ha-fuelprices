@@ -203,10 +203,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_NAME: user_input[CONF_NAME],
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
-                    CONF_RADIUS: user_input[CONF_RADIUS],
-                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
-                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
-                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    CONF_RADIUS: user_input[CONF_RADIUS]
                 }
             )
             return await self.async_step_area_menu()
@@ -251,10 +248,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_NAME: user_input[CONF_NAME],
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
-                    CONF_RADIUS: user_input[CONF_RADIUS],
-                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
-                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
-                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    CONF_RADIUS: user_input[CONF_RADIUS]
                 }
             )
             return await self.async_step_area_menu()
