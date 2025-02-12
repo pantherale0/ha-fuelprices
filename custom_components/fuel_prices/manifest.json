@@ -16,7 +16,7 @@
     "xmltodict",
     "brotli",
     "these-united-states==1.1.0.21",
-    "pyfuelprices==2025.2.2"
+    "pyfuelprices==2025.2.3"
   ],
   "ssdp": [],
   "version": "0.0.0",
