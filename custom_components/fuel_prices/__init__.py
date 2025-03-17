@@ -26,7 +26,15 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_AREAS, CONF_SOURCES, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_COUNT, CONF_CHEAPEST_SENSORS_FUEL_TYPE
+from .const import (
+    DOMAIN,
+    CONF_AREAS,
+    CONF_SOURCES,
+    CONF_CHEAPEST_SENSORS,
+    CONF_CHEAPEST_SENSORS_COUNT,
+    CONF_CHEAPEST_SENSORS_FUEL_TYPE,
+    CONF_SOURCE_CONFIG
+)
 from .coordinator import FuelPricesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,6 +83,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -
             configured_areas=_build_configured_areas(areas),
             timeout=timedelta(seconds=timeout),
             update_interval=timedelta(minutes=update_interval),
+            source_config=entry.options.get(
+                CONF_SOURCE_CONFIG, entry.data.get(CONF_SOURCE_CONFIG, None))
         )
     except Exception as err:
         _LOGGER.error(err)

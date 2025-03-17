@@ -117,6 +117,15 @@
                     "state": "State to show on the created sensors"
                 }
             },
+            "source_config": {
+                "title": "Source Configuration",
+                "description": "{source} requires additional configuration before it can be used. Refer to the documentation for more information.",
+                "data": {
+                    "USER_ID": "User ID",
+                    "APIKEY": "API Key",
+                    "PASSWORD": "Password"
+                }
+            },
             "area_menu": {
                 "title": "Configure areas to register devices and sensors",
                 "menu_options": {
