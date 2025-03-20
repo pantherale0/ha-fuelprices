@@ -155,7 +155,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.configuring_area = {}
         self.configuring_index = -1
         self.timeout = 10
-        self.interval = 1440
+        self.interval = 24
         # add the home location as a default (this can optionally be removed).
         self.configured_areas.append(
             {
@@ -355,7 +355,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
     configuring_index = -1
     configuring_source = ""
     timeout = 10
-    interval = 1440
+    interval = 24
     state_value = "name"
     config_entry: FuelPricesConfigEntry
 
@@ -411,7 +411,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         )
         self.interval = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, self.config_entry.data.get(
-                CONF_SCAN_INTERVAL, 1440)
+                CONF_SCAN_INTERVAL, 24)
         )
         self.state_value = self.config_entry.options.get(
             CONF_STATE_VALUE, self.config_entry.data.get(
