@@ -16,6 +16,15 @@
                     "state": "State to show on the created sensors"
                 }
             },
+            "source_config": {
+                "title": "Source Configuration",
+                "description": "{source} requires additional configuration before it can be used. Refer to the documentation for more information.",
+                "data": {
+                    "USER_ID": "User ID",
+                    "APIKEY": "API Key",
+                    "PASSWORD": "Password"
+                }
+            },
             "area_menu": {
                 "title": "Configure areas to register devices and sensors.",
                 "description": "By default your home location has already been added automatically with a radius of 20 miles, this can be removed or changed if needed.",
@@ -115,6 +124,15 @@
                 "data": {
                     "sources": "Data source(s)",
                     "state": "State to show on the created sensors"
+                }
+            },
+            "source_config": {
+                "title": "Source Configuration",
+                "description": "{source} requires additional configuration before it can be used. Refer to the documentation for more information.",
+                "data": {
+                    "USER_ID": "User ID",
+                    "APIKEY": "API Key",
+                    "PASSWORD": "Password"
                 }
             },
             "area_menu": {

@@ -1,12 +1,16 @@
 {
   "name": "ludeeus/integration_blueprint",
-  "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.13",
   "postCreateCommand": "scripts/setup",
-  "forwardPorts": [8123],
+  "forwardPorts": [8123, 5678],
   "portsAttributes": {
     "8123": {
       "label": "Home Assistant",
       "onAutoForward": "notify"
+    },
+    "5678": {
+      "label": "Home Assistant Debug",
+      "onAutoForward": "silent"
     }
   },
   "customizations": {
