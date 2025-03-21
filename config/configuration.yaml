@@ -11,4 +11,4 @@ logger:
 # Enable VSCode debugging
 debugpy:
   start: true
-  wait: false
+  wait: true
