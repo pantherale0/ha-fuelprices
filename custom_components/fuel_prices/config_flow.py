@@ -125,7 +125,7 @@ OPTIONS_AREA_SCHEMA = AREA_SCHEMA.extend(
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
-    VERSION = 5
+    VERSION = 4
     configured_areas: list[dict] = []
     source_configuration = {}
     configuring_area = {}

@@ -177,7 +177,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         # This means the user has downgraded from a future version
         return False
 
-    if config_entry.version == 4:
+    if config_entry.version == 3:
         _LOGGER.warning("Updating configuration for fuel prices.")
         sources = new_data[CONF_SOURCES]
         providers = {}
@@ -190,7 +190,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
 
     if config_entry.version == 2:
-        _LOGGER.warning("Removing jet and morrisons from config entry.")
+        _LOGGER.warning("Removing morrisons from config entry.")
         if "morrisons" in new_data[CONF_SOURCES]:
             new_data[CONF_SOURCES].remove("morrisons")
         hass.config_entries.async_update_entry(
