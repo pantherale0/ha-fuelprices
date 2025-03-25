@@ -1,5 +1,7 @@
 # Installation
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=ha-fuelprices)
+
 1. Add the repository to HACS
 1. Install integration
 1. Follow prompts to configure integration

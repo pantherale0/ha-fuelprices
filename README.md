@@ -23,15 +23,16 @@ _Integration to integrate with [pyfuelprices][pyfuelprices]._
 
 ### Manual
 
+1. Download latest release
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
-1. In the `custom_components` directory (folder) create a new folder called `fuel_prices`.
-1. Download _all_ the files from the `custom_components/fuel_prices/` directory (folder) in this repository.
-1. Place the files you downloaded in the new directory (folder) you created.
+1. Extract downloaded release into `custom_components` directory (folder)
 1. Restart Home Assistant
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Fuel Prices"
 
 ### HACS
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=ha-fuelprices)
 
 1. Open HACS on your HA instance.
 1. Copy the repository URL: [https://github.com/pantherale0/ha-fuelprices](https://github.com/pantherale0/ha-fuelprices).
