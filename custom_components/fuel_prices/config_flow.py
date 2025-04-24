@@ -507,9 +507,10 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
-                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
-                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
-                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    CONF_CHEAPEST_SENSORS: user_input.get(CONF_CHEAPEST_SENSORS, False),
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input.get(CONF_CHEAPEST_SENSORS_COUNT, 5),
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input.get(
+                        CONF_CHEAPEST_SENSORS_FUEL_TYPE, None)
                 }
             )
             return await self.async_step_area_menu()
@@ -569,9 +570,10 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     CONF_LATITUDE: user_input[CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LONGITUDE],
                     CONF_RADIUS: user_input[CONF_RADIUS],
-                    CONF_CHEAPEST_SENSORS: user_input[CONF_CHEAPEST_SENSORS],
-                    CONF_CHEAPEST_SENSORS_COUNT: user_input[CONF_CHEAPEST_SENSORS_COUNT],
-                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input[CONF_CHEAPEST_SENSORS_FUEL_TYPE]
+                    CONF_CHEAPEST_SENSORS: user_input.get(CONF_CHEAPEST_SENSORS, False),
+                    CONF_CHEAPEST_SENSORS_COUNT: user_input.get(CONF_CHEAPEST_SENSORS_COUNT, 5),
+                    CONF_CHEAPEST_SENSORS_FUEL_TYPE: user_input.get(
+                        CONF_CHEAPEST_SENSORS_FUEL_TYPE, None)
                 }
             )
             return await self.async_step_area_menu()
