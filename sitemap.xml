@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/installation/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/data_sources/new_zealand/finelly/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/services/find_fuel_station/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/services/find_fuels/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/template_examples/cheapest_n_stations/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+    <url>
+         <loc>https://pantherale0.github.io/ha-fuelprices/template_examples/cheapest_n_stations_device_tracker/</loc>
+         <lastmod>2025-08-01</lastmod>
+    </url>
+</urlset>
