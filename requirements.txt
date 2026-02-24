@@ -3,7 +3,6 @@ homeassistant==2025.10.2
 pip>=26.0
 ruff==0.0.292
 pyfuelprices==2026.2.0
-aiohttp>=3.13.3 # not directly required, pinned by Snyk to avoid a vulnerability
 cryptography>=46.0.5 # not directly required, pinned by Snyk to avoid a vulnerability
 orjson>=3.11.6 # not directly required, pinned by Snyk to avoid a vulnerability
 pillow>=12.1.1 # not directly required, pinned by Snyk to avoid a vulnerability
