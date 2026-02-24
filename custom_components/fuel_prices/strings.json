@@ -22,8 +22,12 @@
     },
     "issues": {
         "deprecate_cheapest_stations": {
-            "description": "The 'cheapest_stations' option is deprecated and will be removed in a future release. Please use the 'find_fuels' service to retrieve a list of cheapest fuel prices instead.",
+            "description": "The 'cheapest_stations' option is deprecated and has been removed. Please use the 'find_fuels' service to retrieve a list of cheapest fuel prices instead.\n\nPress repair to remove the configuration.",
             "title": "Cheapest N Fuel Stations deprecation"
+        },
+        "deprecate_directlease": {
+            "description": "The 'directlease' data source is deprecated and will be removed in a future release. Press repair to use ANWB onderweg instead.\n\nYou will need to manually clean up any existing entities after removing this data source as the integration will not automatically remove them since the data source will still be available for selection in the integration options.",
+            "title": "DirectLease data source deprecation"
         }
     },
     "options": {

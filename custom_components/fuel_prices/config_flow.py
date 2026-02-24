@@ -539,7 +539,10 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             user_input[CONF_TIMEOUT] = self.timeout
             user_input[CONF_STATE_VALUE] = self.state_value
             self.options.update(user_input)
-            return self.async_create_entry(title=NAME, data=self.options)
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, data=user_input)
+            self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(data={})
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
 
