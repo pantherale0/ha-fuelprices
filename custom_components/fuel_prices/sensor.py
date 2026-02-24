@@ -7,7 +7,7 @@ import logging
 
 from collections.abc import Mapping
 from typing import Any
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import SensorDeviceClass

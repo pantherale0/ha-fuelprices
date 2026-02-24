@@ -9,7 +9,6 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector, entity_registry as er
-from homeassistant.helpers import config_validation as cv
 from homeassistant.core import callback
 from homeassistant.const import (
     CONF_LATITUDE,

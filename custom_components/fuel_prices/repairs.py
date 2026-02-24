@@ -7,7 +7,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import issue_registry as ir
 
-from .const import DOMAIN, CONF_SOURCES, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_FUEL_TYPE, CONF_AREAS, CONF_CHEAPEST_SENSORS_COUNT
+from .const import DOMAIN, CONF_SOURCES, CONF_CHEAPEST_SENSORS, CONF_CHEAPEST_SENSORS_FUEL_TYPE, CONF_CHEAPEST_SENSORS_COUNT
 
 
 class DirectLeaseDeprecationFlow(RepairsFlow):
@@ -24,7 +24,7 @@ class DirectLeaseDeprecationFlow(RepairsFlow):
     async def async_step_confirm(self, user_input=None):
         """Handle the confirmation step."""
         if user_input is not None:
-            new_data = {k: v for k, v in self._config_entry.data.items()}
+            new_data = dict(self._config_entry.data.items())
             # Remove the deprecated data source from the config entry data
             new_data[CONF_SOURCES] = {
                 k: v for k, v in new_data[CONF_SOURCES].items() if k != "directlease"}
@@ -54,7 +54,7 @@ class CheapestStationsDeprecationFlow(RepairsFlow):
     async def async_step_confirm(self, user_input=None):
         """Handle the confirmation step."""
         if user_input is not None:
-            new_data = {k: v for k, v in self._config_entry.data.items()}
+            new_data = dict(self._config_entry.data.items())
             for area in new_data.get("areas", []):
                 area.pop(CONF_CHEAPEST_SENSORS, None)
                 area.pop(CONF_CHEAPEST_SENSORS_FUEL_TYPE, None)
