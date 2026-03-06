@@ -47,18 +47,10 @@ def build_sources_list() -> list[selector.SelectOptionDict]:
         if not src_config.available_for_setup:
             continue
         if isinstance(src_config.country_code, list):
-            for country in src_config.country_code:
-                sources.append(
-                    selector.SelectOptionDict(
-                        value=src_id,
-                        label=f"{country}: {src_config.provider_name}",
-                    )
-                )
+            label = src_config.provider_name
         else:
-            sources.append(
-                selector.SelectOptionDict(
-                    value=src_id, label=f"{src_config.country_code}: {src_config.provider_name}")
-            )
+            label = f"{src_config.country_code}: {src_config.provider_name}"
+        sources.append(selector.SelectOptionDict(value=src_id, label=label))
 
     sources.sort(key=lambda x: x["label"])
     return sources
