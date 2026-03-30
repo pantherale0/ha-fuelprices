@@ -3,3 +3,4 @@ homeassistant==2026.2.3
 pip>=26.0
 ruff==0.0.292
 pyfuelprices==2026.2.1
+cryptography>=46.0.6 # not directly required, pinned by Snyk to avoid a vulnerability
