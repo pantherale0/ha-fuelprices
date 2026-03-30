@@ -532,7 +532,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             self.options.update(user_input)
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=user_input)
-            self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
             return self.async_create_entry(data={})
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
 
