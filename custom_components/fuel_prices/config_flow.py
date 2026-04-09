@@ -193,17 +193,17 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self.source_configuration.keys()) > 0:
                 user_input[CONF_SOURCES] = self.source_configuration
             elif self.hass.config.country is not None:
-                for src in SOURCE_MAP.items():
-                    src: Source = src[0]
+                for src_id, src_config in SOURCE_MAP.items():
+                    src_config: Source = src_config[0]
                     if not (
-                        src.country_code == self.hass.config.country and
-                        src.enabled and
-                        src.available_for_setup and
-                        src.auto_country_mapping
+                        src_config.country_code == self.hass.config.country and
+                        src_config.enabled and
+                        src_config.available_for_setup and
+                        src_config.auto_country_mapping
                     ):
                         continue
                     user_input.setdefault(CONF_SOURCES, {})
-                    user_input[CONF_SOURCES][src.provider_name] = {}
+                    user_input[CONF_SOURCES][src_config.provider_name] = {}
             else:
                 user_input[CONF_SOURCES] = dict.fromkeys(
                     [k.value for k in build_sources_list()], {}
@@ -512,15 +512,15 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             if len(self.source_configuration.keys()) > 0:
                 user_input[CONF_SOURCES] = self.source_configuration
             elif self.hass.config.country is not None:
-                for src in SOURCE_MAP.items():
-                    src: Source = src[0]
+                for src_id, src_config in SOURCE_MAP.items():
+                    src_config: Source = src_config[0]
                     if not (
-                            src.country_code == self.hass.config.country and
-                            src.enabled and
-                            src.auto_country_mapping):
+                            src_config.country_code == self.hass.config.country and
+                            src_config.enabled and
+                            src_config.auto_country_mapping):
                         continue
                     user_input.setdefault(CONF_SOURCES, {})
-                    user_input[CONF_SOURCES][src.provider_name] = {}
+                    user_input[CONF_SOURCES][src_config.provider_name] = {}
             else:
                 user_input[CONF_SOURCES] = dict.fromkeys(
                     [k.value for k in build_sources_list()], {}
