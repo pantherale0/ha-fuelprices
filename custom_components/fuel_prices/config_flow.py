@@ -193,7 +193,7 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self.source_configuration.keys()) > 0:
                 user_input[CONF_SOURCES] = self.source_configuration
             elif self.hass.config.country is not None:
-                for src_id, src_config in SOURCE_MAP.items():
+                for _, src_config in SOURCE_MAP.items():
                     src_config: Source = src_config[0]
                     if not (
                         src_config.country_code == self.hass.config.country and
@@ -512,7 +512,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             if len(self.source_configuration.keys()) > 0:
                 user_input[CONF_SOURCES] = self.source_configuration
             elif self.hass.config.country is not None:
-                for src_id, src_config in SOURCE_MAP.items():
+                for _, src_config in SOURCE_MAP.items():
                     src_config: Source = src_config[0]
                     if not (
                             src_config.country_code == self.hass.config.country and
