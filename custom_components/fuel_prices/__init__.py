@@ -168,6 +168,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: FuelPricesConfigEntry) -
         except ValueError as err:
             raise HomeAssistantError(
                 "Country not available for fuel data.") from err
+        except TypeError as err:
+            # Raised by pyfuelprices when a station has no price for the fuel.
+            raise HomeAssistantError(
+                f"Unable to compare fuel prices: {err}") from err
 
     async def handle_fuel_location_lookup(call: ServiceCall) -> ServiceResponse:
         """Handle a fuel location lookup call."""
