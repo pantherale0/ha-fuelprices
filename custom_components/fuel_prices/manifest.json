@@ -14,7 +14,7 @@
   ],
   "requirements": [
     "brotli",
-    "pyfuelprices==2026.10.0"
+    "pyfuelprices==2026.10"
   ],
   "ssdp": [],
   "version": "0.0.0",
