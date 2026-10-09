@@ -258,7 +258,7 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: FuelPricesConfigEntry,
-    ) -> "FuelPricesOptionsFlow":
+    ) -> FuelPricesOptionsFlow:
         """Return option flow."""
         return FuelPricesOptionsFlow()
 
