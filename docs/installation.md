@@ -18,10 +18,6 @@ The main configuration entry point is provided via a configuration flow. Using a
 | `radius`                    | (Required) The radius of the area in miles.                                                                                                                                                            | Number (miles) | 5.0     |
 | `latitude`                  | (Required, with `longitude`) The latitude of the center of the area. Must be used with `longitude`.                                                                                                    | Latitude                 | None    |
 | `longitude`                 | (Required, with `latitude`) The longitude of the center of the area. Must be used with `latitude`.                                                                                                   | Longitude                | None    |
-| `cheapest_sensors`          | (Optional) A boolean value to determine whether cheapest sensors should be created for this area.                                                                                                     | Flag                   | False   |
-| `cheapest_sensors_count`    | (Required, with `cheapest_sensors`) The number of cheapest sensors to create. Only used if `cheapest_sensors` is true.                                                                                                         | Number (Min: 1, Max: 10, Step: 1) | 5       |
-| `cheapest_sensors_fuel_type` | (Required, with `cheapest_sensors`) The fuel type for which the cheapest sensors should be created. Only used if `cheapest_sensors` is true. | Text                      | ""      |
-
 ### System Configuration Options
 
 | Option        | Description                                                                                                                                                                                                              | Type                                      | Default |

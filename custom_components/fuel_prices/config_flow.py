@@ -1,5 +1,6 @@
 """Config flow for Fuel Prices."""
 
+import copy
 import logging
 from typing import Any
 
@@ -7,7 +8,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector, entity_registry as er
 from homeassistant.core import callback
 from homeassistant.const import (
@@ -31,7 +31,8 @@ from .const import (
     CONF_AREAS,
     CONF_SOURCES,
     CONF_STATE_VALUE,
-    CONF_CHEAPEST_SENSORS_FUEL_TYPE,
+    METERS_PER_MILE,
+    REPLACED_SOURCES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,6 +47,8 @@ def build_sources_list() -> list[selector.SelectOptionDict]:
             continue
         if not src_config.available_for_setup:
             continue
+        if src_id in REPLACED_SOURCES:
+            continue
         if isinstance(src_config.country_code, list):
             label = src_config.provider_name
         else:
@@ -54,6 +57,29 @@ def build_sources_list() -> list[selector.SelectOptionDict]:
 
     sources.sort(key=lambda x: x["label"])
     return sources
+
+
+def merge_source_selection(existing: dict, selected: list[str]) -> dict:
+    """Build the source configuration for a new selection, keeping existing config."""
+    return {
+        src: copy.deepcopy(existing.get(src, {}))
+        for src in selected
+        if src in SOURCE_MAP
+    }
+
+
+def validate_source_config(source: str, user_input: dict) -> dict[str, str]:
+    """Validate user input for a source config step, returning form errors."""
+    schema = FuelPrices.get_source_config_schema(source)
+    if any(isinstance(v, str) and not v.strip() for v in user_input.values()):
+        return {"base": "invalid_source_config"}
+    if schema is None:
+        return {}
+    try:
+        schema(user_input)
+    except vol.Invalid:
+        return {"base": "invalid_source_config"}
+    return {}
 
 
 AREA_SCHEMA = vol.Schema(
@@ -99,15 +125,18 @@ SYSTEM_SCHEMA = vol.Schema(
 class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
-    VERSION = 4
-    configured_areas: list[dict] = []
-    source_configuration = {}
-    configuring_area = {}
-    configuring_index = -1
-    configuring_source = ""
-    state_value = "name"
-    timeout = None
-    interval = None
+    VERSION = 5
+
+    def __init__(self) -> None:
+        """Initialise per-flow state."""
+        self.configured_areas: list[dict] = []
+        self.source_configuration: dict[str, dict] = {}
+        self.configuring_area: dict = {}
+        self.configuring_index = -1
+        self.configuring_source = ""
+        self.state_value = "name"
+        self.timeout = None
+        self.interval = None
 
     @property
     def configured_area_names(self) -> list[str]:
@@ -147,8 +176,8 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Set data source config."""
         if user_input is not None:
             if len(user_input.keys()) > 0:
-                self.source_configuration = dict.fromkeys(
-                    user_input[CONF_SOURCES], {})
+                self.source_configuration = merge_source_selection(
+                    self.source_configuration, user_input[CONF_SOURCES])
                 self.timeout = user_input[CONF_TIMEOUT]
                 self.interval = user_input[CONF_SCAN_INTERVAL]
             for src, config in self.source_configuration.items():
@@ -176,14 +205,22 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None, source: str | None = None
     ):
         """Show the config for a specific data source."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            self.source_configuration[self.configuring_source] = user_input
-            return await self.async_step_sources({})
-        self.configuring_source = source
+            errors = validate_source_config(
+                self.configuring_source, user_input)
+            if not errors:
+                self.source_configuration[self.configuring_source] = user_input
+                return await self.async_step_sources({})
+        else:
+            self.configuring_source = source
         return self.async_show_form(
             step_id="source_config",
-            data_schema=FuelPrices.get_source_config_schema(source),
-            description_placeholders={"source": source.capitalize()},
+            data_schema=FuelPrices.get_source_config_schema(
+                self.configuring_source),
+            description_placeholders={
+                "source": self.configuring_source.capitalize()},
+            errors=errors,
         )
 
     async def async_step_finished(self, user_input: dict[str, Any] | None = None):
@@ -199,15 +236,17 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         src_config.country_code == self.hass.config.country and
                         src_config.enabled and
                         src_config.available_for_setup and
-                        src_config.auto_country_mapping
+                        src_config.auto_country_mapping and
+                        src_config.provider_name not in REPLACED_SOURCES
                     ):
                         continue
                     user_input.setdefault(CONF_SOURCES, {})
                     user_input[CONF_SOURCES][src_config.provider_name] = {}
             else:
-                user_input[CONF_SOURCES] = dict.fromkeys(
-                    [k.value for k in build_sources_list()], {}
-                )
+                user_input[CONF_SOURCES] = {
+                    k["value"]: {} for k in build_sources_list()
+                    if not FuelPrices.source_requires_config(k["value"])
+                }
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
@@ -221,22 +260,24 @@ class FuelPricesConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: FuelPricesConfigEntry,
     ) -> "FuelPricesOptionsFlow":
         """Return option flow."""
-        return FuelPricesOptionsFlow(config_entry)
+        return FuelPricesOptionsFlow()
 
 
-class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
+class FuelPricesOptionsFlow(config_entries.OptionsFlow):
     """OptionsFlow for fuel_prices module."""
 
-    global_config = {}
-    configured_areas: list[dict] = []
-    source_configuration = {}
-    configuring_area = {}
-    configuring_index = -1
-    configuring_source = ""
-    timeout = 10
-    interval = 24
-    state_value = "name"
     config_entry: FuelPricesConfigEntry
+
+    def __init__(self) -> None:
+        """Initialise per-flow state."""
+        self.configured_areas: list[dict] = []
+        self.source_configuration: dict[str, dict] = {}
+        self.configuring_area: dict = {}
+        self.configuring_index = -1
+        self.configuring_source = ""
+        self.timeout = 10
+        self.interval = 24
+        self.state_value = "name"
 
     @property
     def configured_area_names(self) -> list[str]:
@@ -245,19 +286,6 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         for area in self.configured_areas:
             items.append(area["name"])
         return items
-
-    async def _async_create_entry(self) -> config_entries.FlowResult:
-        """Create an entry."""
-        return self.async_create_entry(
-            title=self.config_entry.title,
-            data={
-                CONF_AREAS: self.configured_areas,
-                CONF_SOURCES: self.source_configuration,
-                CONF_SCAN_INTERVAL: self.interval,
-                CONF_TIMEOUT: self.timeout,
-                CONF_STATE_VALUE: self.state_value,
-            },
-        )
 
     def build_available_fuels_list(self) -> list:
         """Build a list of available fuels according to data within entity registry."""
@@ -280,12 +308,14 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
 
     async def async_step_init(self, _: None = None):
         """User init option flow."""
-        self.configured_areas = self.config_entry.options.get(
+        # Copies are required: editing the entry's own objects in place would
+        # make async_update_entry see no change and skip the reload.
+        self.configured_areas = copy.deepcopy(self.config_entry.options.get(
             CONF_AREAS, self.config_entry.data.get(CONF_AREAS, [])
-        )
-        self.source_configuration = self.config_entry.options.get(
+        ))
+        self.source_configuration = copy.deepcopy(self.config_entry.options.get(
             CONF_SOURCES, self.config_entry.data.get(CONF_SOURCES, {})
-        )
+        ))
         self.timeout = self.config_entry.options.get(
             CONF_TIMEOUT, self.config_entry.data.get(CONF_TIMEOUT, 10)
         )
@@ -314,8 +344,8 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         """Set data source config."""
         if user_input is not None:
             if len(user_input.keys()) > 0:
-                self.source_configuration = dict.fromkeys(
-                    user_input[CONF_SOURCES], {})
+                self.source_configuration = merge_source_selection(
+                    self.source_configuration, user_input[CONF_SOURCES])
                 self.timeout = user_input[CONF_TIMEOUT]
                 self.interval = user_input[CONF_SCAN_INTERVAL]
                 self.state_value = user_input[CONF_STATE_VALUE]
@@ -357,14 +387,22 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         self, user_input: dict[str, Any] | None = None, source: str | None = None
     ):
         """Show the config for a specific data source."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            self.source_configuration[self.configuring_source] = user_input
-            return await self.async_step_sources({})
-        self.configuring_source = source
+            errors = validate_source_config(
+                self.configuring_source, user_input)
+            if not errors:
+                self.source_configuration[self.configuring_source] = user_input
+                return await self.async_step_sources({})
+        else:
+            self.configuring_source = source
         return self.async_show_form(
             step_id="source_config",
-            data_schema=FuelPrices.get_source_config_schema(source),
-            description_placeholders={"source": source.capitalize()},
+            data_schema=FuelPrices.get_source_config_schema(
+                self.configuring_source),
+            description_placeholders={
+                "source": self.configuring_source.capitalize()},
+            errors=errors,
         )
 
     async def async_step_area_menu(self, _: None = None) -> FlowResult:
@@ -388,7 +426,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     CONF_NAME: user_input[CONF_NAME],
                     CONF_LATITUDE: user_input[CONF_LOCATION][CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LOCATION][CONF_LONGITUDE],
-                    CONF_RADIUS: user_input[CONF_LOCATION][CONF_RADIUS],
+                    CONF_RADIUS: user_input[CONF_LOCATION][CONF_RADIUS] / METERS_PER_MILE,
                 }
             )
             return await self.async_step_area_menu()
@@ -403,21 +441,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         )
         return self.async_show_form(
             step_id="area_create",
-            data_schema=data_schema.extend(
-                {
-                    vol.Optional(
-                        CONF_CHEAPEST_SENSORS_FUEL_TYPE
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=self.build_available_fuels_list(),
-                            multiple=False,
-                            custom_value=False,
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            sort=True,
-                        )
-                    )
-                }
-            ),
+            data_schema=data_schema,
             errors=errors,
         )
 
@@ -433,7 +457,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                         CONF_LOCATION: {
                             CONF_LATITUDE: data[CONF_LATITUDE],
                             CONF_LONGITUDE: data[CONF_LONGITUDE],
-                            CONF_RADIUS: data[CONF_RADIUS]*1609,
+                            CONF_RADIUS: data[CONF_RADIUS] * METERS_PER_MILE,
                         },
                     }
                     self.configuring_area.pop(CONF_LATITUDE)
@@ -468,7 +492,7 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     CONF_NAME: user_input[CONF_NAME],
                     CONF_LATITUDE: user_input[CONF_LOCATION][CONF_LATITUDE],
                     CONF_LONGITUDE: user_input[CONF_LOCATION][CONF_LONGITUDE],
-                    CONF_RADIUS: user_input[CONF_LOCATION][CONF_RADIUS] / 1609,
+                    CONF_RADIUS: user_input[CONF_LOCATION][CONF_RADIUS] / METERS_PER_MILE,
                 }
             )
             return await self.async_step_area_menu()
@@ -517,25 +541,23 @@ class FuelPricesOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     if not (
                             src_config.country_code == self.hass.config.country and
                             src_config.enabled and
-                            src_config.auto_country_mapping):
+                            src_config.auto_country_mapping and
+                            src_config.provider_name not in REPLACED_SOURCES):
                         continue
                     user_input.setdefault(CONF_SOURCES, {})
                     user_input[CONF_SOURCES][src_config.provider_name] = {}
             else:
-                user_input[CONF_SOURCES] = dict.fromkeys(
-                    [k.value for k in build_sources_list()], {}
-                )
+                user_input[CONF_SOURCES] = {
+                    k["value"]: {} for k in build_sources_list()
+                    if not FuelPrices.source_requires_config(k["value"])
+                }
             user_input[CONF_AREAS] = self.configured_areas
             user_input[CONF_SCAN_INTERVAL] = self.interval
             user_input[CONF_TIMEOUT] = self.timeout
             user_input[CONF_STATE_VALUE] = self.state_value
-            self.options.update(user_input)
+            # Options are cleared here too so this is the only change to the
+            # entry, giving exactly one reload via the update listener.
             self.hass.config_entries.async_update_entry(
-                self.config_entry, data=user_input)
-            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+                self.config_entry, data=user_input, options={})
             return self.async_create_entry(data={})
         return self.async_show_form(step_id="finished", errors=errors, last_step=True)
-
-
-class CannotConnect(HomeAssistantError):
-    """Error to indicate we cannot connect."""

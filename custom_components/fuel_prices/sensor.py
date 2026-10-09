@@ -59,8 +59,10 @@ class FuelStationTracker(FuelStationEntity, SensorEntity):
     """A fuel station entity."""
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> str | float | None:
         """Return the native value of the entity."""
+        if self._fuel_station is None:
+            return None
         if self.state_value == "name":
             return self._fuel_station.name
         return self._get_fuels.get(self.state_value, self._fuel_station.name)
@@ -69,6 +71,8 @@ class FuelStationTracker(FuelStationEntity, SensorEntity):
     def _get_fuels(self) -> dict:
         """Return list of fuels."""
         output = {}
+        if self._fuel_station is None:
+            return output
         for fuel in self._fuel_station.available_fuels:
             output[fuel.fuel_type] = fuel.cost
         return output
@@ -76,6 +80,8 @@ class FuelStationTracker(FuelStationEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return extra state attributes."""
+        if self._fuel_station is None:
+            return {"area": self.area}
         return {
             **self._fuel_station.__dict__,
             **self._get_fuels,
@@ -85,32 +91,34 @@ class FuelStationTracker(FuelStationEntity, SensorEntity):
     @property
     def icon(self) -> str:
         """Return entity icon."""
-        if self._fuel_station.brand == "Pod Point":
+        if self._fuel_station is not None and self._fuel_station.brand == "Pod Point":
             return "mdi:battery-charging"
         return "mdi:gas-station"
 
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        return self._fuel_station.name
+        if self._fuel_station is not None:
+            self._last_known_name = self._fuel_station.name
+        return getattr(self, "_last_known_name", self._fuel_station_id)
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return unit of measurement."""
-        if isinstance(self.native_value, str):
+        if self._fuel_station is None or not isinstance(self.native_value, (int, float)):
             return None
         return self._fuel_station.currency.upper()
 
     @property
     def state_class(self) -> str:
         """Return state type."""
-        if isinstance(self.native_value, str):
+        if not isinstance(self.native_value, (int, float)):
             return None
         return "total"
 
     @property
     def device_class(self) -> SensorDeviceClass | None:
         """Return device class."""
-        if isinstance(self.native_value, str):
+        if not isinstance(self.native_value, (int, float)):
             return None
         return SensorDeviceClass.MONETARY

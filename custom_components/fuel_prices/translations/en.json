@@ -18,16 +18,15 @@
                 "description": "Using this menu you can change what providers the integration will collect data from. By default it will use all data sources available for your current country as configured in Home Assistant.",
                 "title": "Configure data collection sources"
             }
+        },
+        "error": {
+            "invalid_source_config": "The configuration for this data source is invalid, please check all required values have been entered."
         }
     },
     "issues": {
-        "deprecate_cheapest_stations": {
-            "description": "The 'cheapest_stations' option is deprecated and has been removed. Please use the 'find_fuels' service to retrieve a list of cheapest fuel prices instead.\n\nPress repair to remove the configuration.",
-            "title": "Cheapest N Fuel Stations deprecation"
-        },
-        "deprecate_directlease": {
-            "description": "The 'directlease' data source is deprecated and will be removed in a future release. Press repair to use ANWB onderweg instead.\n\nYou will need to manually clean up any existing entities after removing this data source as the integration will not automatically remove them since the data source will still be available for selection in the integration options.",
-            "title": "DirectLease data source deprecation"
+        "source_config_invalid": {
+            "title": "{source} data source is not configured correctly",
+            "description": "The {source} data source has a missing or invalid configuration and has been disabled.\n\nOpen the Fuel Prices integration options, select 'Configure data collector sources' and re-enter the details for {source}."
         }
     },
     "options": {
@@ -85,6 +84,9 @@
                 "description": "Using this menu you can change what providers the integration will collect data from.",
                 "title": "Configure data collection sources"
             }
+        },
+        "error": {
+            "invalid_source_config": "The configuration for this data source is invalid, please check all required values have been entered."
         }
     },
     "services": {
