@@ -4,18 +4,15 @@ from __future__ import annotations
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.config_entries import ConfigEntry
+from pyfuelprices.fuel_locations import FuelLocation
 
 from .coordinator import FuelPricesCoordinator
 
 
-class FuelPriceEntity:
-    """Top level entity type."""
+class FuelStationEntity(CoordinatorEntity):
+    """Represents a fuel station."""
 
     config: ConfigEntry
-
-
-class FuelStationEntity(FuelPriceEntity, CoordinatorEntity):
-    """Represents a fuel station."""
 
     def __init__(
         self, coordinator: FuelPricesCoordinator, fuel_station_id, entity_id, source, area, state_value, config: ConfigEntry
@@ -31,11 +28,18 @@ class FuelStationEntity(FuelPriceEntity, CoordinatorEntity):
         self.state_value = state_value
 
     @property
-    def _fuel_station(self):
-        """Return the fuel station."""
-        return self.coordinator.api.configured_sources[
-            self._fuel_station_source
-        ].location_cache[self._fuel_station_id]
+    def _fuel_station(self) -> FuelLocation | None:
+        """Return the fuel station, or None if it is no longer known to its source."""
+        source = self.coordinator.api.configured_sources.get(
+            self._fuel_station_source)
+        if source is None:
+            return None
+        return source.location_cache.get(self._fuel_station_id)
+
+    @property
+    def available(self) -> bool:
+        """Return if the fuel station is available."""
+        return super().available and self._fuel_station is not None
 
     @property
     def unique_id(self) -> str | None:

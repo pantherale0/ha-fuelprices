@@ -47,15 +47,21 @@ _Integration to integrate with [pyfuelprices][pyfuelprices]._
 
 This integration relies entirely on cloud services, alongside this a few libraries are used to geocode provided coordinates into location data for certain providers such as GasBuddy or TankerKoenig.
 
-For reverse geocoding a mix of Nominatim (https://nominatim.org/) and these-united-states (https://pypi.org/project/these-united-states/). This is done to improve performance, for example, looking up provided coordinates with Nominatim will allow us to restrict the fuel station search to data providers available in only that country.
-
-Similar to this, this integration will use these-united-states to retrieve the state of given coordinates, and finally Nominatim is also used to retrieve the nearest postcode for the TankerKoenig data source.
+For reverse geocoding Nominatim (https://nominatim.org/) is used. This is done to improve performance, for example, looking up provided coordinates with Nominatim will allow us to restrict the fuel station search to data providers available in only that country. Nominatim is also used to retrieve the nearest postcode for the TankerKoenig data source.
 
 ## Configuration
 
 A new configuration parameter was introduced in 2024.6.0 that allows you to specify what state to display within Home Assistant. By default this is name, however it can be changed to a value of your liking after setup by clicking `Configure` followed by `Configure data collection sources`. This parameter is called `State to show on the created sensors`.
 
 This value must be set to a fuel price key (available under `Available Fuels` for the produced sensor entities). In the UK this can be reliably set to E5 or B7, however if you set to SDV, a large number of fuel stations either do not stock this or do not provide this data. In this case the integration will default back to the fuel station name but this may create warnings / errors in your logs. Currently this cannot be configured by area.
+
+### UK data sources
+
+The individual retailer feeds published under the CMA open data scheme (Applegreen, Ascona, Asda, BP, Esso, Jet, Karan Retail, Moto, Motor Fuel Group, Rontec, Sainsbury's, SGN Retail, Shell and Tesco) are no longer available. Existing installations using any of these are automatically switched to PetrolPrices, which needs no extra setup, and the entities for the removed sources are deleted.
+
+Similarly, installations using the deprecated DirectLease source (Netherlands) are switched to ANWB Onderweg.
+
+The UK Government Fuel Finder service is available as an alternative, but requires your own API client ID and secret and a UK IP address. See the [Fuel Finder setup guide](docs/data_sources/united_kingdom/fuelfinder.md).
 
 ## Configuration is done in the UI
 

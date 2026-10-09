@@ -13,10 +13,8 @@
     "pyfuelprices"
   ],
   "requirements": [
-    "xmltodict",
     "brotli",
-    "these-united-states==1.1.0.21",
-    "pyfuelprices==2026.3.0"
+    "pyfuelprices==2026.10"
   ],
   "ssdp": [],
   "version": "0.0.0",
